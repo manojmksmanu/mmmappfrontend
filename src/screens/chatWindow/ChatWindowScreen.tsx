@@ -6,7 +6,6 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { getMessages } from "../../services/messageService";
 import { useAuth } from "../../context/userContext";
