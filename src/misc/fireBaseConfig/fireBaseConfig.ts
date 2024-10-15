@@ -1,7 +1,6 @@
-import firebase from "@react-native-firebase/app";
-// import storage from '@react-native-firebase/storage';
-import getStorage from "@react-native-firebase/storage";
 
+import { initializeApp, getApps } from "firebase/app";
+import { getStorage } from "firebase/storage";
 // Firebase configuration object
 const firebaseConfig = {
   apiKey: "AIzaSyAybI_dJ1ZTy6XmJodG8qZ_9fQ-cWAVjnM",
@@ -15,19 +14,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase app if it hasn't been initialized already
-const configFirebase = async () => {
-  try {
-    if (!firebase.apps.length) {
-      // console.log('Attempting to initialize Firebase');
-      await firebase.initializeApp(firebaseConfig);
-      // console.log('Firebase Initialized Successfully');
-    } else {
-      // console.log('Using Existing Firebase App');
-    }
-  } catch (error) {
-    console.error("Firebase initialization error:", error);
-  }
-};
-configFirebase();
+const app =
+  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-export { firebase, getStorage };
+// Initialize Firebase Storage
+const storage = getStorage(app);
+
+export { storage };

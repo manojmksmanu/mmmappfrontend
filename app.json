@@ -14,7 +14,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library."
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library.",
+        "NSCameraUsageDescription": "This app requires access to your camera.",
+        "NSDocumentDirectoryUsageDescription": "This app requires access to your documents.",
+        "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library."
       }
     },
     "android": {
@@ -22,7 +25,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["WRITE_EXTERNAL_STORAGE"]
+      "requestLegacyExternalStorage": true,
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "MANAGE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

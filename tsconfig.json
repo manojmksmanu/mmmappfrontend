@@ -8,8 +8,12 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@types/*": ["@types/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "@types/**/*"],
   "exclude": ["node_modules", "babel.config.js"]
 }

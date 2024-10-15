@@ -1,49 +1,20 @@
 import * as DocumentPicker from "expo-document-picker";
-import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
-import mime from "react-native-mime-types";
 import { showMessage } from "react-native-flash-message";
-import { connect } from "socket.io-client";
-import { Platform } from "react-native";
-import { initializeApp } from "firebase/app";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import storage from "@react-native-firebase/storage";
-import type {
-  DocumentPickerResult,
-  DocumentPickerSuccessResult,
-} from "expo-document-picker";
-// Function to get file type from URI
-const getFileTypeFromUri = (uri: string): string => {
-  const extension = uri.split(".").pop()?.toLowerCase();
-  if (extension) {
-    const mimeType = mime.lookup(extension);
-    return mimeType || "unknown";
-  }
-  return "unknown";
-};
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from "../fireBaseConfig/fireBaseConfig";
+import * as MediaLibrary from "expo-media-library";
 
-// Function to get real path from URI
-const getRealPathFromUri = async (
-  uri: string,
-  fileType: any
-): Promise<string | null> => {
-  if (uri.startsWith("file://")) {
-    return uri.replace("file://", "");
+// --- request to access to filemanager of device --
+export const requestDocumentPickerPermissions = async () => {
+  const { status } = await MediaLibrary.requestPermissionsAsync();
+  if (status !== "granted") {
+    console.error("Permission to access media library was denied");
+    return false;
   }
-  const fileData = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const extension = mime.extension(fileType) || "unknown";
-  const newFilePath = `${
-    FileSystem.documentDirectory
-  }${new Date().getTime()}.${extension}`;
-  await FileSystem.writeAsStringAsync(newFilePath, fileData, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return newFilePath;
+  return true;
 };
+// ---end here  request to access to filemanager of device --
 
-// Function to open the document picker
 export const openDocumentPicker = async (
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
@@ -56,111 +27,41 @@ export const openDocumentPicker = async (
   messageId: any,
   socket: any
 ) => {
-  const result: DocumentPickerResult = await DocumentPicker.getDocumentAsync({
-    type: "*/*",
-  });
-
-  // Check if the result is successful
-  if (result.type === "success") {
-    const documentUri = (result as DocumentPickerSuccessResult).uri; // Type assertion
-    const fileName = (result as DocumentPickerSuccessResult).name; // Type assertion
-    const fileType = (result as DocumentPickerSuccessResult).mimeType; // Type assertion
-
-    if (documentUri && fileName) {
-      const decodedUri = await getRealPathFromUri(documentUri, fileType);
-      if (decodedUri) {
-        await uploadFileToFirebase(
-          decodedUri,
-          fileType,
-          fileName,
-          setSending,
-          setIsSending,
-          setSendingPercentage,
-          checkAndSaveMessageLocally,
-          chatId,
-          sender,
-          senderName,
-          replyingMessage,
-          messageId,
-          socket
-        );
-      } else {
-        console.warn("Failed to resolve URI to a file path");
-      }
-    } else {
-      console.warn("No document URI or file name found");
-    }
-  } else {
-    console.log("User canceled document picker");
+  const hasPermission = await requestDocumentPickerPermissions();
+  if (!hasPermission) {
+    return null;
   }
-};
 
-// Function to request camera permission
-const requestCameraPermission = async () => {
-  if (Platform.OS === "android") {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    return status === "granted";
-  }
-  return true; // iOS permissions are granted automatically
-};
-
-// Function to open the camera
-export const openCamera = async (
-  setSending: any,
-  setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
-  setSendingPercentage: any,
-  checkAndSaveMessageLocally: any,
-  chatId: any,
-  sender: string,
-  senderName: string,
-  replyingMessage: any,
-  messageId: any,
-  socket: any
-) => {
-  const hasPermission = await requestCameraPermission();
-  if (hasPermission) {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+  try {
+    const docRes = await DocumentPicker.getDocumentAsync({
+      type: "*/*", // Allow all file types
     });
-
-    if (!result.canceled) {
-      const decodedUri = result.assets[0].uri;
-      const fileType = result.assets[0].type || "image/jpeg";
-      const fileName = result.assets[0].fileName || "image_upload.jpg";
-
-      if (decodedUri) {
-        await uploadFileToFirebase(
-          decodedUri,
-          fileType,
-          fileName,
-          setSending,
-          setIsSending,
-          setSendingPercentage,
-          checkAndSaveMessageLocally,
-          chatId,
-          sender,
-          senderName,
-          replyingMessage,
-          messageId,
-          socket
-        );
-      }
-    } else {
-      console.log("User canceled camera");
+    console.log("Document Picker Response:", docRes);
+    if (docRes.type === "cancel") {
+      console.log("Document selection canceled");
+      return null;
     }
-  } else {
-    console.log("Camera permission denied");
+    await uploadToFirebase(
+      docRes,
+      setSending,
+      setIsSending,
+      setSendingPercentage,
+      checkAndSaveMessageLocally,
+      chatId,
+      sender,
+      senderName,
+      replyingMessage,
+      messageId,
+      socket
+    );
+    return docRes;
+  } catch (err) {
+    console.log("Error while picking document:", err);
+    return null;
   }
 };
-
-// Function to upload file to Firebase
-const uploadFileToFirebase = async (
-  fileUri: string,
-  fileType: any,
-  fileName: string,
+export const uploadToFirebase = async (
+  docRes: any,
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
   setSendingPercentage: any,
@@ -172,63 +73,160 @@ const uploadFileToFirebase = async (
   messageId: any,
   socket: any
 ) => {
-  const reference = storage().ref(`/uploads/${fileName}`);
-  const uploadTask = reference.putFile(fileUri);
+  if (!docRes || !docRes.assets || docRes.assets.length === 0) {
+    console.error("Invalid document response");
+    return;
+  }
 
-  const tempMessage = {
-    chatId,
-    sender,
-    senderName,
-    message: fileName,
-    fileUrl: "",
-    fileType,
-    messageId,
-    replyingMessage,
-    status: "uploading",
-  };
+  const asset = docRes.assets[0];
+  const { uri, name, mimeType } = asset;
 
-  checkAndSaveMessageLocally(tempMessage);
+  console.log("Extracted URI:", uri);
+  console.log("Extracted Name:", name);
+  console.log("Extracted type:", mimeType);
 
-  uploadTask.on(
-    "state_changed",
-    (snapshot: any) => {
-      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      setSendingPercentage(`${progress.toFixed(2)}`);
-      setSending(fileName);
-      setIsSending(true);
-    },
-    async (error: any) => {
-      console.error("Error uploading file:", error);
-      showMessage({
-        message: `Upload failed: ${error.message}`,
-        type: "danger", // Use 'danger' for error messages
-      });
-      setIsSending(false);
-    },
-    async () => {
-      try {
-        const downloadURL = await reference.getDownloadURL();
-        const newMessage = {
-          ...tempMessage,
-          fileUrl: downloadURL,
-          status: "sent",
-        };
+  if (!uri) {
+    console.error("No URI found for the selected document");
+    return;
+  }
 
-        if (socket) {
-          socket.emit("sendDocument", newMessage);
-          await checkAndSaveMessageLocally(newMessage);
-        }
-
-        setIsSending(false);
-        setSending("");
-      } catch (error: any) {
-        console.error("Error getting download URL:", error);
+  try {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const storageRef = ref(storage, `uploads/${name}`);
+    const uploadTask = uploadBytesResumable(storageRef, blob);
+    const tempMessage = {
+      chatId,
+      sender,
+      senderName,
+      message: name,
+      fileUrl: "",
+      fileType: mimeType,
+      messageId,
+      replyingMessage,
+      status: "uploading",
+    };
+    checkAndSaveMessageLocally(tempMessage);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        // Progress monitoring (optional)
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log(`Upload is ${progress}% done`);
+      },
+      (error) => {
         showMessage({
-          message: `Failed to retrieve URL: ${error.message}`,
-          type: "danger", // Use 'danger' for error messages
+          message: "Error",
+          description: "Upload Failed ",
+          type: "danger",
         });
-        setIsSending(false);
+        console.error("Upload failed:", error);
+      },
+      async () => {
+        // On successful upload
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log("File available at:", downloadURL);
+          const newMessage = {
+            ...tempMessage,
+            fileUrl: downloadURL,
+            status: "sent",
+          };
+
+          if (socket) {
+            socket.emit("sendDocument", newMessage);
+            await checkAndSaveMessageLocally(newMessage);
+          }
+
+          setIsSending(false);
+          setSending("");
+        } catch (error) {
+          console.error("Error getting download URL:", error);
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    console.log("Error while uploading document:", err);
+  }
 };
+
+// ✌✌✌✌✌✌ combined open document and upload document
+// export const openDocumentPickerupload = async () => {
+//   const hasPermission = await requestDocumentPickerPermissions();
+//   if (!hasPermission) {
+//     return; // Exit if permission is not granted
+//   }
+//   try {
+//     // Pick a document
+//     const docRes = await DocumentPicker.getDocumentAsync({
+//       type: "*/*", // Allow all file types
+//     });
+
+//     console.log("Document Picker Response:", docRes); // Log the response
+
+//     // Check if the user canceled the document picker
+//     if (docRes.type === "cancel") {
+//       console.log("Document selection canceled");
+//       return;
+//     }
+
+//     // Ensure the response contains a valid document in assets array
+//     if (!docRes.assets || docRes.assets.length === 0) {
+//       console.error("No assets found in the document picker response");
+//       return;
+//     }
+
+//     // Extract the first asset
+//     const asset = docRes.assets[0]; // Get the first asset
+//     const { uri, name, mimeType } = asset; // Destructure properties
+
+//     // Log the extracted values
+//     console.log("Extracted URI:", uri);
+//     console.log("Extracted Name:", name);
+//     console.log("Extracted MIME Type:", mimeType);
+
+//     // Ensure `uri` is valid
+//     if (!uri) {
+//       console.error("No URI found for the selected document");
+//       return;
+//     }
+
+//     // Fetch the file data directly from the URI
+//     const response = await fetch(uri);
+//     const blob = await response.blob(); // Convert response to a Blob
+
+//     // Create a reference to Firebase Storage
+//     const storageRef = ref(storage, `uploads/${name}`);
+
+//     // Upload the file to Firebase Storage using `uploadBytesResumable`
+//     const uploadTask = uploadBytesResumable(storageRef, blob);
+
+//     uploadTask.on(
+//       "state_changed",
+//       (snapshot) => {
+//         // Progress monitoring (optional)
+//         const progress =
+//           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+//         console.log(`Upload is ${progress}% done`);
+//       },
+//       (error) => {
+//         console.error("Upload failed:", error);
+//       },
+//       async () => {
+//         // On successful upload
+//         try {
+//           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+//           console.log("File available at:", downloadURL);
+//         } catch (error) {
+//           console.error("Error getting download URL:", error);
+//         }
+//       }
+//     );
+//   } catch (err: any) {
+//     console.log("Error while uploading document:", err);
+//   }
+// };
+// end here ✌✌✌✌✌✌ combined open document and upload document
+
+export const openCamera = async () => {};
