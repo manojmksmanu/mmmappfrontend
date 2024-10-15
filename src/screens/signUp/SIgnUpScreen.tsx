@@ -12,8 +12,6 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import FlashMessage, { showMessage } from "react-native-flash-message"; // Import FlashMessage
-
-import { SelectDropdown } from "expo-select-dropdown";
 import { getAllContry, getAllSubjects } from "../../services/miscServices";
 import { signup } from "../../services/authService";
 import { isValidEmail } from "../../misc/misc";

@@ -462,27 +462,31 @@ const RenderMessage = ({
       >
         <View style={styles.modalContainer}>
           {selectedFileType === "application/pdf" && selectedFileUrl ? (
-            <WebView
-              source={{ uri: selectedFileUrl }}
-              style={{ flex: 1 }} // Ensure WebView takes up full space
-              onError={(syntheticEvent) => {
-                const { nativeEvent } = syntheticEvent;
-                console.warn("WebView error: ", nativeEvent);
-              }}
-              javaScriptEnabled={true}
-              startInLoadingState={true}
-              renderLoading={() => (
-                <ActivityIndicator size="large" color="blue" />
+            <Pdf
+              trustAllCerts={false}
+              scale={0.8}
+              minScale={0.5}
+              renderActivityIndicator={() => (
+                <ActivityIndicator color="blue" size="large" />
               )}
+              source={{ uri: selectedFileUrl, cache: true }}
+              onError={(error: any) => console.log(error)}
+              style={styles.pdf}
             />
           ) : selectedFileType?.startsWith("image/") && selectedFileUrl ? (
             <Image source={{ uri: selectedFileUrl }} style={styles.fullImage} />
           ) : selectedFileType?.startsWith("video/") && selectedFileUrl ? (
             <WebView
               source={{ uri: selectedFileUrl }}
-              style={styles.fullVideo}
-              allowsInlineMediaPlayback={true}
-              javaScriptEnabled={true}
+              style={{ flex: 1 }}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <ActivityIndicator size="large" color="blue" />
+              )}
+              onError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.warn("WebView error: ", nativeEvent);
+              }}
             />
           ) : null}
 

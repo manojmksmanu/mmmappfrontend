@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1077116040460",
+    "project_id": "reactnative-a9cd0",
+    "storage_bucket": "reactnative-a9cd0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1077116040460:android:21940a37fd8c832b848529",
+        "android_client_info": {
+          "package_name": "com.mmmapp.mmmappfronted"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBb80kULDcyjS_v4hrel5DotgSGjdr-c1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1077116040460:android:6c2f7192479005dc848529",
+        "android_client_info": {
+          "package_name": "com.mmmapp.mmmappfronted"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBb80kULDcyjS_v4hrel5DotgSGjdr-c1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

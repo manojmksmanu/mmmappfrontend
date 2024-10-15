@@ -153,86 +153,7 @@ export const uploadToFirebaseDocument = async (
   }
 };
 
-// ✌✌✌✌✌✌ combined open document and upload document
-// export const openDocumentPickerupload = async () => {
-//   const hasPermission = await requestDocumentPickerPermissions();
-//   if (!hasPermission) {
-//     return; // Exit if permission is not granted
-//   }
-//   try {
-//     // Pick a document
-//     const docRes = await DocumentPicker.getDocumentAsync({
-//       type: "*/*", // Allow all file types
-//     });
-
-//     console.log("Document Picker Response:", docRes); // Log the response
-
-//     // Check if the user canceled the document picker
-//     if (docRes.type === "cancel") {
-//       console.log("Document selection canceled");
-//       return;
-//     }
-
-//     // Ensure the response contains a valid document in assets array
-//     if (!docRes.assets || docRes.assets.length === 0) {
-//       console.error("No assets found in the document picker response");
-//       return;
-//     }
-
-//     // Extract the first asset
-//     const asset = docRes.assets[0]; // Get the first asset
-//     const { uri, name, mimeType } = asset; // Destructure properties
-
-//     // Log the extracted values
-//     console.log("Extracted URI:", uri);
-//     console.log("Extracted Name:", name);
-//     console.log("Extracted MIME Type:", mimeType);
-
-//     // Ensure `uri` is valid
-//     if (!uri) {
-//       console.error("No URI found for the selected document");
-//       return;
-//     }
-
-//     // Fetch the file data directly from the URI
-//     const response = await fetch(uri);
-//     const blob = await response.blob(); // Convert response to a Blob
-
-//     // Create a reference to Firebase Storage
-//     const storageRef = ref(storage, `uploads/${name}`);
-
-//     // Upload the file to Firebase Storage using `uploadBytesResumable`
-//     const uploadTask = uploadBytesResumable(storageRef, blob);
-
-//     uploadTask.on(
-//       "state_changed",
-//       (snapshot) => {
-//         // Progress monitoring (optional)
-//         const progress =
-//           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-//         console.log(`Upload is ${progress}% done`);
-//       },
-//       (error) => {
-//         console.error("Upload failed:", error);
-//       },
-//       async () => {
-//         // On successful upload
-//         try {
-//           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-//           console.log("File available at:", downloadURL);
-//         } catch (error) {
-//           console.error("Error getting download URL:", error);
-//         }
-//       }
-//     );
-//   } catch (err: any) {
-//     console.log("Error while uploading document:", err);
-//   }
-// };
-// end here ✌✌✌✌✌✌ combined open document and upload document
-
 // --- request to access the camera ---
-
 export const requestCameraPermissions = async () => {
   const { status } = await ImagePicker.requestCameraPermissionsAsync();
   if (status !== "granted") {
@@ -242,6 +163,7 @@ export const requestCameraPermissions = async () => {
   return true;
 };
 // ---end here request to access the camera ---
+
 export const openCamera = async (
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
@@ -289,10 +211,9 @@ export const openCamera = async (
       return;
     }
 
-    // Call uploadToFirebase with the asset
     await uploadToFirebaseCamera(
-      uri, // Pass the URI directly
-      fileName, // Pass the filename for Firebase
+      uri,
+      fileName,
       setSending,
       setIsSending,
       setSendingPercentage,
@@ -305,16 +226,15 @@ export const openCamera = async (
       socket
     );
 
-    return docRes; // Return asset for further use if needed
+    return docRes;
   } catch (err) {
     console.log("Error while capturing image:", err);
     return null;
   }
 };
-
 export const uploadToFirebaseCamera = async (
-  uri: string, // Expect URI as input
-  fileName: string, // Expect filename as input
+  uri: string,
+  fileName: string,
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
   setSendingPercentage: any,
