@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyDlAi1aIrlpok18iht4rG0oPeZ1-8TRORM</string>
+	<string>AIzaSyC_of7im2BTv8SSt8tmseMzeEy0W9XyR9U</string>
 	<key>GCM_SENDER_ID</key>
-	<string>1077116040460</string>
+	<string>753986425375</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.mmmapp.mmmappios</string>
+	<string>com.mymegaminds.myapp</string>
 	<key>PROJECT_ID</key>
-	<string>reactnative-a9cd0</string>
+	<string>mmmapp-7f726</string>
 	<key>STORAGE_BUCKET</key>
-	<string>reactnative-a9cd0.appspot.com</string>
+	<string>mmmapp-7f726.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1077116040460:ios:d363e460c5f81792848529</string>
+	<string>1:753986425375:ios:b87f3959b4f850cc5cbb2a</string>
 </dict>
 </plist>
