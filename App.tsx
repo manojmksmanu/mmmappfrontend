@@ -5,7 +5,7 @@ import { SafeAreaView, StyleSheet } from "react-native";
 import { AuthProvider } from "./src/context/userContext";
 import { NavigationContainer } from "@react-navigation/native";
 import FlashMessage from "react-native-flash-message";
-import { GestureHandlerRootView } from "react-native-gesture-handler"; 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>

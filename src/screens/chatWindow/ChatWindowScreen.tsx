@@ -188,18 +188,18 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   useEffect(() => {
     navigation.setOptions({
-      // Custom back icon (left header)
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Image
-            source={require("../../../assets/back.png")}
-            style={styles.backIcon}
-          />
-        </TouchableOpacity>
-      ),
+      // headerBackVisible: false,
+      // headerLeft: () => (
+      //   <TouchableOpacity
+      //     onPress={() => navigation.goBack()}
+      //     style={styles.backButton}
+      //   >
+      //     <Image
+      //       source={require("../../../assets/back.png")}
+      //       style={styles.backIcon}
+      //     />
+      //   </TouchableOpacity>
+      // ),
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <View style={styles.profileCircle}>
@@ -259,7 +259,10 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
             onPress={handleMoreOptions}
             style={styles.iconButton}
           >
-            <Image source={require("../../../assets/dots.png")} style={styles.icon} />
+            <Image
+              source={require("../../../assets/dots.png")}
+              style={styles.icon}
+            />
           </TouchableOpacity>
           {selectedMessages.length > 0 && (
             <TouchableOpacity

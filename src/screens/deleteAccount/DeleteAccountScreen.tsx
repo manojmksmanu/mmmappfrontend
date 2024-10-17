@@ -66,17 +66,17 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Image
-            source={require("../../../assets/back.png")} // Your custom back icon image
-            style={styles.backIcon}
-          />
-        </TouchableOpacity>
-      ),
+    //   headerLeft: () => (
+    //     <TouchableOpacity
+    //       onPress={() => navigation.goBack()}
+    //       style={styles.backButton}
+    //     >
+    //       <Image
+    //         source={require("../../../assets/back.png")} // Your custom back icon image
+    //         style={styles.backIcon}
+    //       />
+    //     </TouchableOpacity>
+    //   ),
       headerTitle: () => (
         <View style={styles.headerContainer}>
           <Text style={styles.headerTitle}>Delete Account</Text>
