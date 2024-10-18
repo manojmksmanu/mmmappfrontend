@@ -34,12 +34,14 @@
     "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "1.0.0",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app requires access to your photo library.",
         "NSCameraUsageDescription": "This app requires access to your camera.",
         "NSDocumentDirectoryUsageDescription": "This app requires access to your documents.",
         "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library."
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
