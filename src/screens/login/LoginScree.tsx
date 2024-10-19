@@ -99,7 +99,13 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           style={{ width: 20, height: 20 }}
           source={require("../../../assets/user.png")}
         />
-        <View style={styles.pickerWrapper}>
+        <View
+          style={
+            Platform.OS === "ios"
+              ? styles.pickerWrapperIOS
+              : styles.pickerWrapper
+          }
+        >
           <Picker
             selectedValue={userType}
             onValueChange={(itemValue) => SetUserType(itemValue)}
@@ -194,6 +200,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40, // Set height for the container, not the Picker itself
     justifyContent: "center", // Align items in the middle (if needed)
+  },
+  pickerWrapperIOS: {
+    flex: 1,
+    justifyContent: "center",
+    height: 40, // Adjust height for iOS
   },
   picker: {
     flex: 1,
