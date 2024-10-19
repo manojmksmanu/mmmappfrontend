@@ -204,11 +204,9 @@ const styles = StyleSheet.create({
   },
   picker: {
     ...Platform.select({
-      ios: {
-        flex: 1, // Allow the picker to take full available space on iOS
-      },
+      ios: { color: "grey", textAlign: "left" },
       android: {
-        flex: 1, // Keep consistent behavior on Android
+        color: "grey", // Keep consistent behavior on Android
         paddingHorizontal: 10,
       },
     }),
