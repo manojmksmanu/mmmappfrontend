@@ -58,7 +58,7 @@ export const forward = async (
 ): Promise<void> => {
   const token = await AsyncStorage.getItem("token");
   await axios.post(
-    `${API_URL}/chat/forwardMessages`,
+    `${API_URL}/forwardMessages`,
     {
       chatId: chatId,
       messages: messagesToForward,

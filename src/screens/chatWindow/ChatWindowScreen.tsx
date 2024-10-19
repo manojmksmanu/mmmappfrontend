@@ -255,6 +255,17 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       ),
       headerRight: () => (
         <View style={styles.headerRightContainer}>
+          {selectedMessages.length > 0 && (
+            <TouchableOpacity
+              onPress={navigateToForwardScreen}
+              style={styles.iconButton}
+            >
+              <Image
+                source={require("../../../assets/forward.png")}
+                style={styles.forwardIcon}
+              />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={handleMoreOptions}
             style={styles.iconButton}
@@ -264,17 +275,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
               style={styles.icon}
             />
           </TouchableOpacity>
-          {selectedMessages.length > 0 && (
-            <TouchableOpacity
-              onPress={navigateToForwardScreen}
-              style={styles.iconButton}
-            >
-              <Image
-                source={require("../../../assets/forward-message.png")}
-                style={styles.forwardIcon}
-              />
-            </TouchableOpacity>
-          )}
         </View>
       ),
     });
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   forwardIcon: {
     width: 30,
     height: 30,
-    tintColor: "#4CAF50",
+    opacity:0.6,
   },
   textContainer: {
     flexDirection: "column",

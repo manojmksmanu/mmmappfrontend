@@ -195,6 +195,8 @@ const styles = StyleSheet.create({
       ios: {
         height: 40, // Ensure height is constrained on iOS
         justifyContent: "center", // Center items in the container
+        paddingLeft: 10,
+        overflow: "hidden",
       },
       android: {
         height: 40, // Keep height the same on Android
@@ -204,7 +206,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     ...Platform.select({
-      ios: { color: "green", textAlign: "left" },
+      ios: { color: "grey", textAlign: "left" },
       android: {
         color: "grey", // Keep consistent behavior on Android
         paddingHorizontal: 10,
