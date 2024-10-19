@@ -188,18 +188,18 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   useEffect(() => {
     navigation.setOptions({
-      // headerBackVisible: false,
-      // headerLeft: () => (
-      //   <TouchableOpacity
-      //     onPress={() => navigation.goBack()}
-      //     style={styles.backButton}
-      //   >
-      //     <Image
-      //       source={require("../../../assets/back.png")}
-      //       style={styles.backIcon}
-      //     />
-      //   </TouchableOpacity>
-      // ),
+      headerBackVisible: false,
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Image
+            source={require("../../../assets/back.png")}
+            style={styles.backIcon}
+          />
+        </TouchableOpacity>
+      ),
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <View style={styles.profileCircle}>
@@ -697,8 +697,8 @@ const styles = StyleSheet.create({
     color: "grey",
   },
   profileCircle: {
-    width: 48,
-    height: 48,
+    width: 35,
+    height: 35,
     borderRadius: 24,
     backgroundColor: "#FFFFFF",
     shadowColor: "#000",

@@ -8,12 +8,15 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { loggeduser, login } from "../../services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../../context/userContext";
 import { Picker } from "@react-native-picker/picker";
-import  { showMessage } from "react-native-flash-message"; 
+import { showMessage } from "react-native-flash-message";
 import { isValidEmail } from "../../misc/misc";
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -61,7 +64,15 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <StatusBar
+        barStyle={Platform.OS === "ios" ? "dark-content" : "light-content"}
+        backgroundColor="#187afa" // Set the background color for Android
+        translucent={false} // Ensure the status bar is not translucent
+      />
       <Text style={styles.logoText}>MyMegaminds</Text>
 
       {/* Email Input */}
@@ -77,6 +88,8 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           onChangeText={setEmail}
           style={styles.input}
           editable={!loading}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
       </View>
 
@@ -120,57 +133,30 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {loading ? (
         <ActivityIndicator size="large" color="#007bff" />
       ) : (
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <TouchableOpacity
+          style={[styles.button, Platform.OS === "ios" && styles.iosButton]}
+          onPress={handleLogin}
+        >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
       )}
+
+      {/* Forgot Password and Signup */}
       <View>
-        <View style={{ marginTop: 20 }}>
-          <TouchableOpacity
-            style={{ paddingTop: 0 }}
-            onPress={handleForgotPassword}
-          >
-            <Text
-              style={{
-                color: "#187afa",
-                paddingTop: 0,
-                textAlign: "center",
-                fontWeight: "bold",
-              }}
-            >
-              Forgot Your Password?
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <Text
-          style={{
-            textAlign: "center",
-            marginTop: 4,
-            fontSize: 16,
-            color: "grey",
-          }}
+        <TouchableOpacity
+          style={{ marginTop: 20 }}
+          onPress={handleForgotPassword}
         >
-          Don't have an account?{" "}
-        </Text>
-        <View>
-          <TouchableOpacity
-            style={{ paddingTop: 0 }}
-            onPress={handleSignUpPress}
-          >
-            <Text
-              style={{
-                color: "#187afa",
-                paddingTop: 0,
-                textAlign: "center",
-                fontWeight: "bold",
-              }}
-            >
-              SignUp
-            </Text>
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.forgotText}>Forgot Your Password?</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.noAccountText}>Don't have an account?</Text>
+
+        <TouchableOpacity style={{ paddingTop: 0 }} onPress={handleSignUpPress}>
+          <Text style={styles.signUpText}>SignUp</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -202,9 +188,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  icon: {
-    marginLeft: 10,
-  },
   picker: {
     flex: 1,
     color: "grey",
@@ -224,10 +207,29 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 10,
   },
+  iosButton: {
+    opacity: 0.9, // Adding slight opacity for iOS feedback
+  },
   buttonText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "500",
+  },
+  forgotText: {
+    color: "#187afa",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  noAccountText: {
+    textAlign: "center",
+    marginTop: 4,
+    fontSize: 16,
+    color: "grey",
+  },
+  signUpText: {
+    color: "#187afa",
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
 
