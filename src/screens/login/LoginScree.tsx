@@ -99,17 +99,19 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           style={{ width: 20, height: 20 }}
           source={require("../../../assets/user.png")}
         />
-        <Picker
-          selectedValue={userType}
-          onValueChange={(itemValue) => SetUserType(itemValue)}
-          style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
-          enabled={!loading}
-          dropdownIconColor="black"
-        >
-          <Picker.Item label="Admin" value="Admin" />
-          <Picker.Item label="Tutor" value="Tutor" />
-          <Picker.Item label="Student" value="Student" />
-        </Picker>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={userType}
+            onValueChange={(itemValue) => SetUserType(itemValue)}
+            style={styles.picker}
+            enabled={!loading}
+            dropdownIconColor="black"
+          >
+            <Picker.Item label="Admin" value="Admin" />
+            <Picker.Item label="Tutor" value="Tutor" />
+            <Picker.Item label="Student" value="Student" />
+          </Picker>
+        </View>
       </View>
 
       {/* Password Input */}
@@ -187,6 +189,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 10,
     paddingVertical: 8,
+  },
+  pickerWrapper: {
+    flex: 1,
+    height: 40, // Set height for the container, not the Picker itself
+    justifyContent: "center", // Align items in the middle (if needed)
   },
   picker: {
     flex: 1,
