@@ -102,7 +102,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Picker
           selectedValue={userType}
           onValueChange={(itemValue) => SetUserType(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, Platform.OS === "ios" && styles.pickerIOS]}
           enabled={!loading}
           dropdownIconColor="black"
         >
@@ -191,6 +191,9 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     color: "grey",
+  },
+  pickerIOS: {
+    height: 40, // Set height explicitly for iOS to reduce the space it takes
   },
   button: {
     backgroundColor: "#187afa",
