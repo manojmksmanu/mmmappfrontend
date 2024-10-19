@@ -99,19 +99,12 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           style={{ width: 20, height: 20 }}
           source={require("../../../assets/user.png")}
         />
-        <View
-          style={
-            Platform.OS === "ios"
-              ? styles.pickerWrapperIOS
-              : styles.pickerWrapper
-          }
-        >
+        <View style={styles.pickerContainer}>
           <Picker
             selectedValue={userType}
             onValueChange={(itemValue) => SetUserType(itemValue)}
             style={styles.picker}
             enabled={!loading}
-            dropdownIconColor="black"
           >
             <Picker.Item label="Admin" value="Admin" />
             <Picker.Item label="Tutor" value="Tutor" />
@@ -196,22 +189,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  pickerWrapper: {
+  pickerContainer: {
     flex: 1,
-    height: 40, // Set height for the container, not the Picker itself
-    justifyContent: "center", // Align items in the middle (if needed)
-  },
-  pickerWrapperIOS: {
-    flex: 1,
-    justifyContent: "center",
-    height: 40, // Adjust height for iOS
+    ...Platform.select({
+      ios: {
+        height: 40, // Ensure height is constrained on iOS
+        justifyContent: "center", // Center items in the container
+      },
+      android: {
+        height: 40, // Keep height the same on Android
+        justifyContent: "center",
+      },
+    }),
   },
   picker: {
-    flex: 1,
-    color: "grey",
-  },
-  pickerIOS: {
-    height: 40, // Set height explicitly for iOS to reduce the space it takes
+    ...Platform.select({
+      ios: {
+        flex: 1, // Allow the picker to take full available space on iOS
+      },
+      android: {
+        flex: 1, // Keep consistent behavior on Android
+        paddingHorizontal: 10,
+      },
+    }),
   },
   button: {
     backgroundColor: "#187afa",
