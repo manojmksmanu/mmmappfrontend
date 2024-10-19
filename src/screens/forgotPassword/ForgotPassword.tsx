@@ -17,7 +17,9 @@ import {
 import { showMessage } from "react-native-flash-message"; 
 import { isValidEmail } from "../../misc/misc";
 
-const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({
+  navigation,
+}) => {
   const [email, setEmail] = useState<string>("");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputRefs = useRef<Array<TextInput | null>>([]);
@@ -56,19 +58,19 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   console.log(email);
   const sendOtp = async () => {
     if (!email || !isValidEmail(email)) {
-     showMessage({
-       message: "Please enter a valid Email....",
-       type: "danger",
-     });
+      showMessage({
+        message: "Please enter a valid Email....",
+        type: "danger",
+      });
       return;
     }
     try {
       setLoading(true);
       const data = await forgotPassword(email);
-     showMessage({
-       message: data.message,
-       type: "success",
-     });
+      showMessage({
+        message: data.message,
+        type: "success",
+      });
       setLoading(false);
       setShowOption("OtpConfirm");
     } catch (err: any) {
@@ -83,10 +85,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const confirmOtp = async () => {
     if (otp.join("").length < 4) {
-       showMessage({
-         message: "Enter OTP",
-         type: "danger",
-       });
+      showMessage({
+        message: "Enter OTP",
+        type: "danger",
+      });
       return;
     }
     try {
@@ -99,10 +101,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       setLoading(false);
       setShowOption("Reset");
     } catch (err: any) {
-       showMessage({
-         message: `${err}`,
-         type: "danger",
-       });
+      showMessage({
+        message: `${err}`,
+        type: "danger",
+      });
       console.log(err);
     }
   };
@@ -117,10 +119,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       return;
     }
     if (password !== confirmPassword) {
-     showMessage({
-       message: "Confirm Password is not same as Password ",
-       type: "danger",
-     });
+      showMessage({
+        message: "Confirm Password is not same as Password ",
+        type: "danger",
+      });
       return;
     }
 
@@ -375,4 +377,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;

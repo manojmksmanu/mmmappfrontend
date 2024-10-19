@@ -60,7 +60,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   const handleForgotPassword = async () => {
-    navigation.navigate("ForgotPassword");
+    navigation.navigate("ForgotPassowrd");
   };
 
   return (

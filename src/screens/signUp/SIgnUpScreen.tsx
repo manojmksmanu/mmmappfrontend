@@ -21,7 +21,7 @@ interface Country {
   phoneCode: string;
   countryCode: string;
 }
-const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [userType, SetUserType] = useState<string>("Student");
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -396,7 +396,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     onValueChange={(itemValue: any, itemIndex) =>
                       handleSelectSubject(itemValue)
                     }
-                    style={{  }}
+                    style={{}}
                   >
                     <Picker.Item label="Select a subject" value={null} />
                     {allSubjects.map((subject) => (
@@ -613,4 +613,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default SignUpScreen;
