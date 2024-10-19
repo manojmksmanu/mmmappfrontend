@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     ...Platform.select({
-      ios: { color: "red", textAlign: "left" },
+      ios: { color: "green", textAlign: "left" },
       android: {
         color: "grey", // Keep consistent behavior on Android
         paddingHorizontal: 10,
