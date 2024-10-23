@@ -7,7 +7,7 @@ interface User {
   userType: any;
 }
 const API_URL = "https://reactnativeassignment.onrender.com/api";
-// const API_URL = 'http://10.0.2.2:5000/api';
+// const API_URL = "http://10.0.2.2:5000/api";
 export const getMessages = async (userId: string): Promise<any[]> => {
   const token = await AsyncStorage.getItem("token");
   const response = await axios.get(`${API_URL}/messages/${userId}`, {
@@ -69,4 +69,24 @@ export const forward = async (
       headers: { Authorization: `Bearer ${token}` },
     }
   );
+};
+
+export const markMessageRead = async (
+  chatId: any,
+  userId: any,
+) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    const response = await axios.post(
+      `${API_URL}/message-mark-read`,
+      { chatId, userId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data; // Return the response data if needed
+  } catch (error) {
+    console.error("Error marking message as read:", error);
+    throw error; // Rethrow the error for further handling if necessary
+  }
 };

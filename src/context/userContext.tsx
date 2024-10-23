@@ -4,10 +4,13 @@ import React, {
   useContext,
   ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import io, { Socket } from "socket.io-client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchChats } from "../misc/findChatsForUser/findChatsforuser";
+import debounce from "lodash/debounce";
+
 // Define a type for the context value
 interface User {
   _id: string;
@@ -62,7 +65,7 @@ type RootStackParamList = {
   ChatWindow: { chatId: string };
   Login: undefined;
 };
-// const API_URL = 'http://10.0.2.2:5000';
+// const API_URL = "http://10.0.2.2:5000";
 const API_URL = "https://reactnativeassignment.onrender.com";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,7 +104,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchUserInfo();
   }, []);
 
+  useEffect(() => {
+    socket?.on("userIsDeleted", ( ) => {
+      FetchChatsAgain();
+    });
+    socket?.on("fetchAgain", () => {
+      FetchChatsAgain();
+    });
+  }, [socket]);
+
   // Initialize socket connection here or elsewhere as needed
+
   useEffect(() => {
     const socketInstance = io(API_URL, {
       transports: ["websocket"],
@@ -136,11 +149,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // AsyncStorage.removeItem('chats')
 
   // Fetch chats
+  const debounceFetchChats = useCallback(
+    debounce(() => {
+      if (loggedUser) {
+        fetchChats(setLoading, setChats, loggedUser);
+      }
+    }, 300), // 300 milliseconds debounce
+    [loggedUser]
+  );
+
   useEffect(() => {
-    if (loggedUser) {
-      fetchChats(setLoading, setChats, loggedUser);
-    }
-  }, [fetchAgain, loggedUser, socket]);
+    debounceFetchChats();
+  }, [loggedUser, fetchAgain]);
   // Fetch Chats end here
 
   return (

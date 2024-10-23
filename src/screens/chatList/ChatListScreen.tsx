@@ -24,7 +24,8 @@ import {
   TextInput,
 } from "react-native-gesture-handler";
 import BottomNavigation from "../../components/chatListScreenComp/BottomNavigation";
-import Animated from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const formatMessageDate = (dateString: any) => {
   if (!dateString) {
     return "";
@@ -88,6 +89,9 @@ const ChatListScreen: React.FC = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredChats, setFilteredChats] = useState<Chat[] | null>(null);
   const [showType, setShowType] = useState<string>("Home");
+  const [chatLoading, setChatLoading] = useState<boolean>(false);
+  const [chatsFromStorage, setChatsFromStorage] = useState<string | null>(null);
+
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
 
@@ -194,22 +198,35 @@ const ChatListScreen: React.FC = () => {
     });
   }, [socket]);
 
+  //---Navigate to GroupCreate
+  const clickCreateGroup = () => {
+    navigation.navigate("GroupCreate");
+  };
+
+  // -- Navigate to chatWindow
   const chatClicked = useCallback(
     (chat: any) => {
-      navigation.navigate("ChatWindow2", { chatId: chat._id });
+      navigation.navigate("ChatWindow", { chatId: chat._id });
       setSelectedChat(chat);
     },
     [navigation, setSelectedChat]
   );
 
-  const clickCreateGroup = () => {
-    navigation.navigate("GroupCreate");
-  };
-
   const getUserFirstLetter = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
   };
 
+ // -----function to check chats in local storage 
+  useEffect(() => {
+    const fetchchatforload = async () => {
+      const storedChats = await AsyncStorage.getItem("chats");
+      setChatsFromStorage(storedChats);
+    };
+
+    fetchchatforload();
+  }, []);
+
+  
   const renderItem = ({ item }: { item: any }) =>
     item.chatType === "one-to-one" ? (
       <TouchableOpacity
@@ -263,7 +280,8 @@ const ChatListScreen: React.FC = () => {
                   : ""}
               </Text>
               <Text style={styles.time}>
-                {loggedUser && formatMessageDate(item.latestMessage?.createdAt)}
+                {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
+                {loggedUser && formatMessageDate(item?.updatedAt)}
               </Text>
             </View>
           ) : (
@@ -319,7 +337,7 @@ const ChatListScreen: React.FC = () => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        {loading ? (
+        {chatsFromStorage && chatsFromStorage.length === 0 ? (
           <ActivityIndicator
             size="large"
             color="#007bff"
@@ -354,6 +372,37 @@ const ChatListScreen: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
+            {/* {loading && (
+              <View
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <View
+                  style={{
+                    width: 80,
+                    padding: 10,
+                    borderRadius: 20,
+                    backgroundColor: "rgba(255, 255, 255, 0.7)",
+                    borderColor: "rgba(255, 255, 255, 0.5)",
+                    borderWidth: 1,
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 4,
+                    },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 6,
+                    elevation: 5,
+                    alignItems: "center",
+                  }}
+                >
+                  <ActivityIndicator size="small" />
+                </View>
+              </View>
+            )} */}
             {showType === "Group" && (
               <View>
                 <TouchableOpacity
@@ -372,6 +421,7 @@ const ChatListScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
             )}
+
             <FlatList
               data={filteredChats}
               keyExtractor={(item) => item._id}

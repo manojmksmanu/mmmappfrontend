@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
   TextInput,
   Image,
   StyleSheet,
+  InteractionManager,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { getMessages } from "../../services/messageService";
 import { useAuth } from "../../context/userContext";
@@ -17,6 +19,7 @@ import {
   openDocumentPicker,
 } from "../../misc/fireBaseUsedFunctions/FireBaseUsedFunctions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchChats } from "src/misc/findChatsForUser/findChatsforuser";
 interface User {
   _id: string;
   name: string;
@@ -38,18 +41,28 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [messages, setMessages] = useState<any[]>([]);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingOnce, setLoadingOnce] = useState<boolean>(true);
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [isReplying, setIsReplying] = useState<boolean>(false);
   const textInputRef = useRef<TextInput>(null);
-  const { loggedUser, selectedChat, socket, onlineUsers, FetchChatsAgain } =
-    useAuth() as {
-      loggedUserId: string;
-      loggedUser: User;
-      selectedChat: any;
-      socket: any;
-      onlineUsers: any;
-      FetchChatsAgain: any;
-    };
+  const {
+    loggedUser,
+    selectedChat,
+    socket,
+    onlineUsers,
+    FetchChatsAgain,
+    setChats,
+    chats,
+  } = useAuth() as {
+    loggedUserId: string;
+    loggedUser: User;
+    selectedChat: any;
+    socket: any;
+    onlineUsers: any;
+    FetchChatsAgain: any;
+    setChats: any;
+    chats: any;
+  };
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
   const [forwardMode, setForwardMode] = useState<boolean>(false);
   const [currentSender, setCurrentSender] = useState<any>(null);
@@ -97,33 +110,54 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   }, []);
   // --socket connection end--
 
-  const updateMessageStatusInStorage = async (messageData: any) => {
+  const updateMessageStatusInStorage = async (messageData) => {
     const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
     if (storedMessages) {
       const messagesData = JSON.parse(storedMessages);
-      const updatedMessages = messagesData.map((msg: any) =>
-        msg.messageId === messageData?.messageId
-          ? { ...msg, ...messageData }
-          : msg
-      );
+      // Convert messages to a lookup object
+      const messageLookup = messagesData.reduce((acc, msg) => {
+        acc[msg.messageId] = msg;
+        return acc;
+      }, {});
+      // Only update if the message exists
+      if (messageLookup[messageData.messageId]) {
+        // Update the message in the lookup object
+        messageLookup[messageData.messageId] = {
+          ...messageLookup[messageData.messageId],
+          ...messageData,
+        };
 
-      // Use function version of setMessages to avoid stale state issues
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.messageId === messageData.messageId
-            ? { ...msg, ...messageData }
-            : msg
-        )
-      );
-      await AsyncStorage.setItem(
-        `messages-${chatId}`,
-        JSON.stringify(updatedMessages)
-      );
+        // Convert back to an array
+        const updatedMessages = Object.values(messageLookup);
+
+        // Update state
+        setMessages(updatedMessages);
+
+        // Store updated messages in AsyncStorage using InteractionManager
+        InteractionManager.runAfterInteractions(async () => {
+          await AsyncStorage.setItem(
+            `messages-${chatId}`,
+            JSON.stringify(updatedMessages)
+          );
+        });
+      }
     }
   };
 
-  // -----loadMessage--- 👀👀👀👀👀👀👀👀--
+  const memoizedMessages = useMemo(() => {
+    const messageLookup = messages.reduce((acc, msg) => {
+      acc[msg.messageId] = msg;
+      return acc;
+    }, {});
 
+    return messages.map((msg) => {
+      return messageLookup[msg.messageId]
+        ? { ...msg, ...messageLookup[msg.messageId] }
+        : msg;
+    });
+  }, [messages]);
+
+  // -----loadMessage---
   const loadMessages = async () => {
     const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
     if (storedMessages) {
@@ -136,8 +170,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setUnsentMessages(JSON.parse(storedUnsentMessages));
     }
   };
-
-  // -----loadMessage--- 👀👀👀👀👀👀👀👀--end
+  // -----loadMessage---
 
   const saveMessageLocally = async (message: any) => {
     const updatedMessages = [...messages, message];
@@ -171,21 +204,11 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     );
   };
 
-  // const saveUnsentMessageLocally = async (unsentMessage: any) => {
-  //   const updatedUnsentMessages = [...unsentMessages, unsentMessage];
-  //   setUnsentMessages(updatedUnsentMessages);
-  //   await AsyncStorage.setItem(
-  //     `unsentMessages-${chatId}`,
-  //     JSON.stringify(updatedUnsentMessages),
-  //   );
-  // };
-
   const getUserFirstAlphabet = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
   };
 
   // ----chat window header--
-
   useEffect(() => {
     navigation.setOptions({
       headerBackVisible: false,
@@ -279,7 +302,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       ),
     });
   }, [navigation, currentSender, selectedMessages]);
-
   // ----chat window header end--
 
   const handleMoreOptions = () => {
@@ -313,6 +335,35 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setLoading(false);
     }
   };
+
+  const fetchMessagesOnceOnPageLoad = async () => {
+    setLoadingOnce(true);
+    try {
+      const response = await getMessages(chatId);
+      const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
+      const storedMessagesData = storedMessages
+        ? JSON.parse(storedMessages)
+        : [];
+      console.log(
+        JSON.stringify(response) !== JSON.stringify(storedMessagesData)
+      );
+      if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
+        console.log("set value");
+        await AsyncStorage.setItem(
+          `messages-${chatId}`,
+          JSON.stringify(response)
+        );
+      }
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+    } finally {
+      setLoadingOnce(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessagesOnceOnPageLoad();
+  }, []);
 
   useEffect(() => {
     fetchMessages();
@@ -429,9 +480,10 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       replyingMessage,
       status: "unsent",
     };
+    await updateChatListWithLatestMessage(newMessage);
+    console.log(newMessage, "newmessage");
     if (socket) {
       try {
-        socket.emit("fetch", "fetchAgain");
         socket.emit("sendMessage", newMessage);
         await saveMessageLocally(newMessage);
       } catch (err) {
@@ -439,7 +491,26 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       }
     }
   };
-
+  const updateChatListWithLatestMessage = async (newMessage: any) => {
+    console.log(newMessage, "onupdate function");
+    const updatedChats = chats.map((chat: any) => {
+      if (chat._id === chatId) {
+        console.log(chat, "matching");
+        return {
+          ...chat,
+          latestMessage: newMessage, // Update the last message
+          updatedAt: new Date().toISOString(), // Optionally, update the timestamp
+        };
+      }
+      return chat;
+    });
+    setChats(updatedChats);
+    try {
+      await AsyncStorage.setItem("chats", JSON.stringify(updatedChats));
+    } catch (error) {
+      console.error("Failed to update local storage:", error);
+    }
+  };
   return (
     <View style={styles.container}>
       {/* {
@@ -451,7 +522,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         />
       ) : ( */}
       <FlatList
-        data={messages.slice().reverse()}
+        data={memoizedMessages.slice().reverse()}
         inverted
         keyExtractor={(item) => item._id}
         style={{ padding: 10 }}
@@ -478,7 +549,44 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         }}
         contentContainerStyle={{ flexGrow: 0 }}
       />
+
       {/* )} */}
+      {loadingOnce && (
+        <View
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <View
+            style={{
+              width: 140,
+              borderRadius: 20,
+              backgroundColor: "rgba(255, 255, 255, 0.7)",
+              borderColor: "rgba(255, 255, 255, 0.5)",
+              borderWidth: 1,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 4,
+              },
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+              elevation: 5,
+              alignItems: "center",
+              padding: 5,
+            }}
+          >
+            <ActivityIndicator size="small" />
+            <Text style={{ fontSize: 10, textAlign: "center" }}>
+              Checking For New Messages
+            </Text>
+          </View>
+        </View>
+      )}
+
       <View>
         <View style={styles.inputMainContainer}>
           <TouchableOpacity onPress={sendDocument}>
@@ -687,7 +795,7 @@ const styles = StyleSheet.create({
   forwardIcon: {
     width: 30,
     height: 30,
-    opacity:0.6,
+    opacity: 0.6,
   },
   textContainer: {
     flexDirection: "column",

@@ -10,37 +10,43 @@ interface OnlineUser {
 }
 export const getSender = (loggedUser: any, users: any[]) => {
   if (users && loggedUser) {
-    const sender = users.find(
-      (chatUser) => chatUser.user?._id.toString() !== loggedUser._id.toString()
-    );
-
-    return sender ? sender || "Unknown Sender" : "Unknown Sender";
-  } else {
-    return "Unknown Sender";
+    const sender = users.find((chatUser) => {
+      return (
+        chatUser.user &&
+        chatUser.user._id?.toString() !== loggedUser._id.toString()
+      );
+    });
+    return sender ? sender : "Unknown Sender";
   }
+  return "Unknown Sender";
 };
+
 
 export const getSenderName = (loggedUser: User, chatUsers: any[]) => {
   if (chatUsers && loggedUser) {
-    const sender = chatUsers.find(
-      (chatUser) => chatUser.user?._id.toString() !== loggedUser._id.toString()
-    );
-
+    const sender = chatUsers.find((chatUser) => {
+      return (
+        chatUser.user &&
+        chatUser.user._id?.toString() !== loggedUser._id.toString()
+      );
+    });
     return sender ? sender.user?.name || "Unknown Sender" : "Unknown Sender";
-  } else {
-    return "Unknown Sender";
   }
+  return "Unknown Sender";
 };
+
 
 export const getSendedType = (loggedUser: User, chatUsers: any[]) => {
   if (chatUsers && loggedUser) {
-    const sender = chatUsers.find(
-      (chatUser) => chatUser.user?._id.toString() !== loggedUser._id.toString()
-    );
+    const sender = chatUsers.find((chatUser) => {
+      return (
+        chatUser.user &&
+        chatUser.user._id?.toString() !== loggedUser._id.toString()
+      );
+    });
     return sender ? sender.user?.userType || "Unknown Type" : "Unknown Type";
-  } else {
-    return "Unknown Type";
   }
+  return "Unknown Type";
 };
 
 export const getSenderStatus = (
@@ -49,12 +55,15 @@ export const getSenderStatus = (
   onlineUsers: OnlineUser[]
 ) => {
   if (chatUsers && loggedUser) {
-    const sender = chatUsers.find(
-      (chatUser) => chatUser.user?._id.toString() !== loggedUser._id.toString()
-    );
+    const sender = chatUsers.find((chatUser) => {
+      return (
+        chatUser.user &&
+        chatUser.user._id?.toString() !== loggedUser._id.toString()
+      );
+    });
 
     if (sender) {
-      return onlineUsers?.some((user) => user.userId === sender.user?._id)
+      return onlineUsers.some((user) => user.userId === sender.user?._id)
         ? "online"
         : "offline";
     }

@@ -3,7 +3,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View } from "react-native";
 import LoginScreen from "../screens/login/LoginScreen";
-import SignUpScreen from "../screens/signUp/SignUpScreen";
+import SignUpScreen from "../screens/signUp/SIgnUpScreen";
 import ForgotPasswordScreen from "../screens/forgotPassword/ForgotPassword";
 import ChatListScreen from "../screens/chatList/ChatListScreen";
 import ChatWindowScreen from "../screens/chatWindow/ChatWindowScreen";
@@ -74,7 +74,7 @@ const AppNavigator: React.FC = () => {
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
           <Stack.Screen name="ForwardChatScreen" component={ForwarChatScreen} />
-          <Stack.Screen name="ChatWindow2" component={ChatWindowScreen} />
+          <Stack.Screen name="ChatWindow" component={ChatWindowScreen} />
           <Stack.Screen name="GroupCreate" component={GroupCreateScreen} />
           <Stack.Screen name="GroupInfo" component={GroupInfoScreen} />
           <Stack.Screen
