@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { getMessages } from "../../services/messageService";
+import { getMessages, markMessageRead } from "../../services/messageService";
 import { useAuth } from "../../context/userContext";
-import RenderMessage from "../../components/chatScreenComp/RenderMessage";
+import RenderMessage from "../../components/chatWindowScreenComp/RenderMessage";
 import { getSendedType, getSenderName, getSenderStatus } from "../../misc/misc";
 import { FlatList } from "react-native-gesture-handler";
 import {
@@ -312,6 +312,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   };
 
   const fetchMessages = async () => {
+    console.log('fetching messages function ')
     setLoading(true);
     try {
       const response = await getMessages(chatId);
@@ -366,6 +367,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   }, []);
 
   useEffect(() => {
+    markMessageRead(chatId, loggedUser._id);
+    console.log('fetch😀')
     fetchMessages();
   }, [messages]);
 
@@ -491,6 +494,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       }
     }
   };
+
   const updateChatListWithLatestMessage = async (newMessage: any) => {
     console.log(newMessage, "onupdate function");
     const updatedChats = chats.map((chat: any) => {
@@ -511,6 +515,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Failed to update local storage:", error);
     }
   };
+
   return (
     <View style={styles.container}>
       {/* {

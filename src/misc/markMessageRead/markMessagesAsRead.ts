@@ -13,7 +13,7 @@ export const markMessagesAsRead = async (
 
     // Update local messages to mark them as read
     const updatedMessages = messagesData.map((message) => {
-      if (!message.readBy.includes(userId)) {
+      if (!message?.readBy.includes(userId)) {
         return {
           ...message,
           readBy: [...message.readBy, userId], // Add userId to readBy

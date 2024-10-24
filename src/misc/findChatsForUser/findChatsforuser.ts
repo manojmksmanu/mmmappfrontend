@@ -17,7 +17,6 @@ export const fetchChats = async (
   try {
     const localChats = await AsyncStorage.getItem("chats");
     parsedLocalChats = localChats ? JSON.parse(localChats) : [];
-    console.log("Local Chats:", parsedLocalChats);
     setChats(parsedLocalChats);
     setLoading(true);
     const response = await getAllChats(loggedUser._id);

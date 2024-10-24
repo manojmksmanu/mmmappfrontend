@@ -15,43 +15,15 @@ import {
   getSender,
   getSenderName,
   getSenderStatus,
+  getUserFirstLetter,
 } from "../../misc/misc";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import dayjs from "dayjs";
-import {
-  GestureHandlerRootView,
-  TextInput,
-} from "react-native-gesture-handler";
+
+import { TextInput } from "react-native-gesture-handler";
 import BottomNavigation from "../../components/chatListScreenComp/BottomNavigation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const formatMessageDate = (dateString: any) => {
-  if (!dateString) {
-    return "";
-  }
-  try {
-    const date = dayjs(dateString);
-    if (!date.isValid()) {
-      console.error("Parsed date is invalid.");
-      return "Invalid Date";
-    }
-
-    const now = dayjs();
-    const yesterday = now.subtract(1, "day");
-
-    if (date.isSame(now, "day")) {
-      return date.format("h:mm A"); // Format like '1:45 PM'
-    } else if (date.isSame(yesterday, "day")) {
-      return "Yesterday";
-    } else {
-      return date.format("MM/DD/YY"); // Format like 'MM/DD/YY'
-    }
-  } catch (error) {
-    console.error("Error parsing date:", error);
-    return "";
-  }
-};
+import { formatMessageDate } from "src/misc/formateMessageDate/formateMessageDate";
 
 type RootStackParamList = {
   ChatList: undefined;
@@ -212,11 +184,7 @@ const ChatListScreen: React.FC = () => {
     [navigation, setSelectedChat]
   );
 
-  const getUserFirstLetter = (userType: any) => {
-    return userType ? userType.charAt(0).toUpperCase() : "";
-  };
-
- // -----function to check chats in local storage 
+  // -----function to check chats in local storage
   useEffect(() => {
     const fetchchatforload = async () => {
       const storedChats = await AsyncStorage.getItem("chats");
@@ -226,7 +194,6 @@ const ChatListScreen: React.FC = () => {
     fetchchatforload();
   }, []);
 
-  
   const renderItem = ({ item }: { item: any }) =>
     item.chatType === "one-to-one" ? (
       <TouchableOpacity

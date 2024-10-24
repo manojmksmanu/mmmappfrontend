@@ -21,7 +21,6 @@ export const getSender = (loggedUser: any, users: any[]) => {
   return "Unknown Sender";
 };
 
-
 export const getSenderName = (loggedUser: User, chatUsers: any[]) => {
   if (chatUsers && loggedUser) {
     const sender = chatUsers.find((chatUser) => {
@@ -34,7 +33,6 @@ export const getSenderName = (loggedUser: User, chatUsers: any[]) => {
   }
   return "Unknown Sender";
 };
-
 
 export const getSendedType = (loggedUser: User, chatUsers: any[]) => {
   if (chatUsers && loggedUser) {
@@ -79,3 +77,4 @@ export const isValidEmail = (email: string): boolean => {
 export const getUserFirstLetter = (userName: any) => {
   return userName ? userName.charAt(0).toUpperCase() : "";
 };
+

@@ -71,10 +71,7 @@ export const forward = async (
   );
 };
 
-export const markMessageRead = async (
-  chatId: any,
-  userId: any,
-) => {
+export const markMessageRead = async (chatId: any, userId: any) => {
   try {
     const token = await AsyncStorage.getItem("token");
     const response = await axios.post(
@@ -84,6 +81,7 @@ export const markMessageRead = async (
         headers: { Authorization: `Bearer ${token}` },
       }
     );
+    console.log("marked");
     return response.data; // Return the response data if needed
   } catch (error) {
     console.error("Error marking message as read:", error);
