@@ -1,4 +1,4 @@
-import  dayjs from "dayjs";
+import dayjs from "dayjs";
 export const formatMessageDate = (dateString: any) => {
   if (!dateString) {
     return "";

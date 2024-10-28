@@ -41,7 +41,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [messages, setMessages] = useState<any[]>([]);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [loadingOnce, setLoadingOnce] = useState<boolean>(true);
+  const [loadingOnce, setLoadingOnce] = useState<boolean>(false);
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [isReplying, setIsReplying] = useState<boolean>(false);
   const textInputRef = useRef<TextInput>(null);
@@ -73,21 +73,22 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   // ----socket connection--
   useEffect(() => {
-    loadMessages();
+    loadMessages(chatId);
 
     if (!socket) return;
 
     socket.emit("joinRoom", chatId);
 
     const handleReceiveMessage = (messageData: MessageData) => {
-      updateMessageStatusInStorage(messageData);
+      console.log(messageData, "socket");
+      updateMessageStatusInStorage(messageData, chatId);
       if (messageData.sender !== loggedUser._id) {
         saveMessageLocally(messageData);
       }
     };
 
     const handleReceiveDocuments = (messageData: MessageData) => {
-      updateMessageStatusInStorage(messageData);
+      updateMessageStatusInStorage(messageData, chatId);
       if (messageData.sender !== loggedUser._id) {
         saveMessageLocally(messageData);
       }
@@ -109,40 +110,81 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     };
   }, []);
   // --socket connection end--
-
   const updateMessageStatusInStorage = async (messageData) => {
-    const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-    if (storedMessages) {
-      const messagesData = JSON.parse(storedMessages);
-      // Convert messages to a lookup object
-      const messageLookup = messagesData.reduce((acc, msg) => {
-        acc[msg.messageId] = msg;
-        return acc;
-      }, {});
-      // Only update if the message exists
-      if (messageLookup[messageData.messageId]) {
-        // Update the message in the lookup object
-        messageLookup[messageData.messageId] = {
-          ...messageLookup[messageData.messageId],
+    console.log(messageData, "Received message data for update");
+    try {
+      // Retrieve all global messages from AsyncStorage
+      const allMessages = await AsyncStorage.getItem("globalMessages");
+      const messagesData = allMessages ? JSON.parse(allMessages) : [];
+
+      // Log the retrieved messages data
+      console.log(messagesData, "Retrieved global messages");
+
+      // Find the index of the message to update
+      const messageIndex = messagesData?.findIndex(
+        (msg) => msg.messageId === messageData.messageId
+      );
+
+      if (messageIndex !== -1) {
+        console.log("Message exists, updating status");
+        // Update the message's status and other details
+        messagesData[messageIndex] = {
+          ...messagesData[messageIndex],
           ...messageData,
         };
 
-        // Convert back to an array
-        const updatedMessages = Object.values(messageLookup);
-
         // Update state
-        setMessages(updatedMessages);
+        setMessages(
+          messagesData.filter((msg) => msg.chatId === messageData.chatId)
+        );
 
-        // Store updated messages in AsyncStorage using InteractionManager
-        InteractionManager.runAfterInteractions(async () => {
-          await AsyncStorage.setItem(
-            `messages-${chatId}`,
-            JSON.stringify(updatedMessages)
-          );
-        });
+        // Store updated messages back to AsyncStorage
+        await AsyncStorage.setItem(
+          "globalMessages",
+          JSON.stringify(messagesData)
+        );
+        console.log("Messages updated in AsyncStorage successfully.");
+      } else {
+        console.log("Message not found for update:", messageData.messageId);
       }
+    } catch (error) {
+      console.error("Error updating message status in storage:", error);
     }
   };
+
+  // const updateMessageStatusInStorage = async (messageData) => {
+  //   const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
+  //   if (storedMessages) {
+  //     const messagesData = JSON.parse(storedMessages);
+  //     // Convert messages to a lookup object
+  //     const messageLookup = messagesData.reduce((acc, msg) => {
+  //       acc[msg.messageId] = msg;
+  //       return acc;
+  //     }, {});
+  //     // Only update if the message exists
+  //     if (messageLookup[messageData.messageId]) {
+  //       // Update the message in the lookup object
+  //       messageLookup[messageData.messageId] = {
+  //         ...messageLookup[messageData.messageId],
+  //         ...messageData,
+  //       };
+
+  //       // Convert back to an array
+  //       const updatedMessages = Object.values(messageLookup);
+
+  //       // Update state
+  //       setMessages(updatedMessages);
+
+  //       // Store updated messages in AsyncStorage using InteractionManager
+  //       InteractionManager.runAfterInteractions(async () => {
+  //         await AsyncStorage.setItem(
+  //           `messages-${chatId}`,
+  //           JSON.stringify(updatedMessages)
+  //         );
+  //       });
+  //     }
+  //   }
+  // };
 
   const memoizedMessages = useMemo(() => {
     const messageLookup = messages.reduce((acc, msg) => {
@@ -158,51 +200,93 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   }, [messages]);
 
   // -----loadMessage---
-  const loadMessages = async () => {
-    const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-    if (storedMessages) {
-      setMessages(JSON.parse(storedMessages));
-    }
-    const storedUnsentMessages = await AsyncStorage.getItem(
-      `unsentMessages-${chatId}`
-    );
-    if (storedUnsentMessages) {
-      setUnsentMessages(JSON.parse(storedUnsentMessages));
+  // const loadMessages = async () => {
+  //   const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
+  //   if (storedMessages) {
+  //     setMessages(JSON.parse(storedMessages));
+  //   }
+  //   const storedUnsentMessages = await AsyncStorage.getItem(
+  //     `unsentMessages-${chatId}`
+  //   );
+  //   if (storedUnsentMessages) {
+  //     setUnsentMessages(JSON.parse(storedUnsentMessages));
+  //   }
+  // };
+
+  const loadMessages = async (chatId) => {
+    try {
+      const allMessages = await AsyncStorage.getItem("globalMessages");
+      const messagesData = allMessages ? JSON.parse(allMessages) : [];
+      if (!Array.isArray(messagesData)) {
+        throw new TypeError("Expected messagesData to be an array");
+      }
+      const chatMessages = messagesData.filter((msg) => msg.chatId === chatId);
+      setMessages(chatMessages);
+    } catch (error) {
+      console.error("Error loading messages from AsyncStorage:", error);
     }
   };
+
   // -----loadMessage---
 
   const saveMessageLocally = async (message: any) => {
     const updatedMessages = [...messages, message];
     setMessages((prevMessages) => [...prevMessages, message]);
     await AsyncStorage.setItem(
-      `messages-${chatId}`,
+      `globalMessages`,
       JSON.stringify(updatedMessages)
     );
   };
 
-  const checkAndSaveMessageLocally = async (message: any) => {
-    const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-    let messagesData = storedMessages ? JSON.parse(storedMessages) : [];
-    const existingMessageIndex = messagesData.findIndex(
-      (msg: any) => msg.messageId === message.messageId
+  // Function to check and save or update an existing message for a specific chatId
+  const checkAndSaveMessageLocally = async (message: any, chatId: any) => {
+    const allMessages = await AsyncStorage.getItem("Messages");
+    const messagesData = allMessages ? JSON.parse(allMessages) : {};
+
+    // Find or update the existing message by its messageId
+    const chatMessages = messagesData[chatId] || [];
+    const existingMessageIndex = chatMessages.findIndex(
+      (msg) => msg.messageId === message.messageId
     );
+
     if (existingMessageIndex !== -1) {
-      messagesData[existingMessageIndex] = {
-        ...messagesData[existingMessageIndex],
+      // Update the existing message
+      chatMessages[existingMessageIndex] = {
+        ...chatMessages[existingMessageIndex],
         ...message,
       };
-      // console.log('Message updated in local storage:', message);
     } else {
-      messagesData.push(message);
-      // console.log('Message saved locally:', message, 'pudh');
+      // Add the new message if it doesn't already exist
+      chatMessages.push(message);
     }
-    setMessages(messagesData);
-    await AsyncStorage.setItem(
-      `messages-${chatId}`,
-      JSON.stringify(messagesData)
-    );
+
+    messagesData[chatId] = chatMessages;
+    setMessages(chatMessages);
+
+    await AsyncStorage.setItem("globalMessages", JSON.stringify(messagesData));
   };
+  // const checkAndSaveMessageLocally = async (message: any) => {
+  //   const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
+  //   let messagesData = storedMessages ? JSON.parse(storedMessages) : [];
+  //   const existingMessageIndex = messagesData.findIndex(
+  //     (msg: any) => msg.messageId === message.messageId
+  //   );
+  //   if (existingMessageIndex !== -1) {
+  //     messagesData[existingMessageIndex] = {
+  //       ...messagesData[existingMessageIndex],
+  //       ...message,
+  //     };
+  //     // console.log('Message updated in local storage:', message);
+  //   } else {
+  //     messagesData.push(message);
+  //     // console.log('Message saved locally:', message, 'pudh');
+  //   }
+  //   setMessages(messagesData);
+  //   await AsyncStorage.setItem(
+  //     `messages-${chatId}`,
+  //     JSON.stringify(messagesData)
+  //   );
+  // };
 
   const getUserFirstAlphabet = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
@@ -311,74 +395,113 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     }
   };
 
-  const fetchMessages = async () => {
-    console.log('fetching messages function ')
-    setLoading(true);
-    try {
-      const response = await getMessages(chatId);
-      const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-      const storedMessagesData = storedMessages
-        ? JSON.parse(storedMessages)
-        : [];
-      console.log(
-        JSON.stringify(response) !== JSON.stringify(storedMessagesData)
-      );
-      if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
-        console.log("set value");
-        await AsyncStorage.setItem(
-          `messages-${chatId}`,
-          JSON.stringify(response)
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch messages:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchMessages = async () => {
+  //   console.log("fetching messages function ");
+  //   setLoading(true);
+  //   try {
+  //     const response = await getMessages(chatId);
+  //     const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
+  //     const storedMessagesData = storedMessages
+  //       ? JSON.parse(storedMessages)
+  //       : [];
+  //     console.log(
+  //       JSON.stringify(response) !== JSON.stringify(storedMessagesData)
+  //     );
+  //     if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
+  //       console.log("set value");
+  //       await AsyncStorage.setItem(
+  //         `messages-${chatId}`,
+  //         JSON.stringify(response)
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch messages:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const fetchMessagesOnceOnPageLoad = async () => {
-    setLoadingOnce(true);
-    try {
-      const response = await getMessages(chatId);
-      const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-      const storedMessagesData = storedMessages
-        ? JSON.parse(storedMessages)
-        : [];
-      console.log(
-        JSON.stringify(response) !== JSON.stringify(storedMessagesData)
-      );
-      if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
-        console.log("set value");
-        await AsyncStorage.setItem(
-          `messages-${chatId}`,
-          JSON.stringify(response)
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch messages:", error);
-    } finally {
-      setLoadingOnce(false);
-    }
-  };
+  // const fetchMessages = async () => {
+  //   console.log("Fetching messages function");
+  //   setLoading(true);
+  //   try {
+  //     // Fetch messages from the server or API
+  //     const response = await getMessages(chatId);
+
+  //     // Retrieve global messages from AsyncStorage
+  //     const allMessages = await AsyncStorage.getItem("globalMessages");
+  //     const messagesData = allMessages ? JSON.parse(allMessages) : {};
+
+  //     // Get stored messages for the specific chatId
+  //     const storedMessagesData = messagesData[chatId] || [];
+
+  //     // Compare the fetched response with the stored messages
+  //     if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
+  //       console.log("Setting value for chatId:", chatId);
+
+  //       // Update the global messages storage with the new data
+  //       messagesData[chatId] = response; // Set the response for the specific chatId
+  //       await AsyncStorage.setItem(
+  //         "globalMessages",
+  //         JSON.stringify(messagesData)
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch messages:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const fetchMessagesOnceOnPageLoad = async () => {
+  //   console.log("Fetching messages function");
+  //   setLoading(true);
+  //   try {
+  //     // Fetch messages from the server or API
+  //     const response = await getMessages(chatId);
+
+  //     // Retrieve global messages from AsyncStorage
+  //     const allMessages = await AsyncStorage.getItem("globalMessages");
+  //     const messagesData = allMessages ? JSON.parse(allMessages) : {};
+
+  //     // Get stored messages for the specific chatId
+  //     const storedMessagesData = messagesData[chatId] || [];
+
+  //     // Compare the fetched response with the stored messages
+  //     if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
+  //       console.log("Setting value for chatId:", chatId);
+
+  //       // Update the global messages storage with the new data
+  //       messagesData[chatId] = response; // Set the response for the specific chatId
+  //       await AsyncStorage.setItem(
+  //         "globalMessages",
+  //         JSON.stringify(messagesData)
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch messages:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchMessagesOnceOnPageLoad();
+  // }, []);
 
   useEffect(() => {
-    fetchMessagesOnceOnPageLoad();
-  }, []);
-
-  useEffect(() => {
-    markMessageRead(chatId, loggedUser._id);
-    console.log('fetch😀')
-    fetchMessages();
+    // markMessageRead(chatId, loggedUser._id);
+    console.log("fetch😀");
+    // fetchMessages();
   }, [messages]);
 
-  useEffect(() => {
-    const renderMessagesonOpnen = async () => {
-      await fetchMessages();
-      loadMessages();
-    };
-    renderMessagesonOpnen();
-  }, [chatId, navigation]);
+  // useEffect(() => {
+  //   const renderMessagesonOpnen = async () => {
+  //     await fetchMessages();
+  //     loadMessages(chatId);
+  //   };
+  //   renderMessagesonOpnen();
+  // }, [chatId, navigation]);
 
   const handleSwipeLeft = (item: any) => {
     setReplyingMessage(item);
@@ -421,7 +544,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const handleTap = (message: any) => {
     if (forwardMode) {
       setSelectedMessages((prevSelected) => {
-        const isSelected = prevSelected.some((msg) => msg._id === message._id);
+        const isSelected = prevSelected?.some((msg) => msg._id === message._id);
         const updatedMessages = isSelected
           ? prevSelected.filter((msg) => msg._id !== message._id)
           : [...prevSelected, message];
@@ -532,7 +655,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         keyExtractor={(item) => item._id}
         style={{ padding: 10 }}
         renderItem={({ item }) => {
-          const isSelected = selectedMessages.some(
+          const isSelected = selectedMessages?.some(
             (msg) => msg._id === item._id
           );
           return (

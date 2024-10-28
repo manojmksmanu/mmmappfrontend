@@ -17,6 +17,8 @@
       "@config-plugins/react-native-pdf",
       "@react-native-firebase/app",
       "expo-build-properties",
+      "expo-notifications",
+
       [
         "expo-build-properties",
         {
@@ -39,7 +41,8 @@
         "NSPhotoLibraryUsageDescription": "This app requires access to your photo library.",
         "NSCameraUsageDescription": "This app requires access to your camera.",
         "NSDocumentDirectoryUsageDescription": "This app requires access to your documents.",
-        "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library."
+        "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library.",
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
       },
       "googleServicesFile": "./GoogleService-Info.plist"
     },

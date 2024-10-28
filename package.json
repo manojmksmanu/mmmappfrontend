@@ -47,7 +47,10 @@
     "react-native-select-dropdown": "^4.0.1",
     "react-native-webview": "13.8.6",
     "socket.io-client": "^4.8.0",
-    "expo-notifications": "~0.28.19"
+    "expo-notifications": "~0.28.19",
+    "expo-device": "~6.0.2",
+    "expo-constants": "~16.0.2",
+    "expo-task-manager": "~11.8.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.8",
