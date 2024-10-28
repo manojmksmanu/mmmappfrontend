@@ -6,16 +6,44 @@ interface User {
   name: string;
   userType: any;
 }
-const API_URL = "https://reactnativeassignment.onrender.com/api";
-// const API_URL = "http://10.0.2.2:5000/api";
-export const getMessages = async (userId: string): Promise<any[]> => {
+// const API_URL = "https://mmmappbackend.onrender.com/api";
+const API_URL = "http://10.0.2.2:5000/api";
+export const getMessages = async (chatId: string): Promise<any[]> => {
   const token = await AsyncStorage.getItem("token");
-  const response = await axios.get(`${API_URL}/messages/${userId}`, {
+  const response = await axios.get(`${API_URL}/messages/${chatId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };
+export const getAllMessages = async (userId: any): Promise<any[]> => {
+  console.log(userId, "on got");
+  try {
+    const token = await AsyncStorage.getItem("token");
 
+    // Check if the token is available
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await axios.get(`${API_URL}/messages/all/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data; // This already contains the parsed JSON data
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error fetching all messages  messages:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Error fetching messages:", error);
+    }
+
+    // Return an empty array as a fallback
+    return [];
+  }
+};
 export const sendMessage = async (messageData: any): Promise<void> => {
   try {
     const token = await AsyncStorage.getItem("token");

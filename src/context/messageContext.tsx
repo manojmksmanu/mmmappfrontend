@@ -6,10 +6,13 @@ import React, {
   useEffect,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getAllMessages, getMessages } from "src/services/messageService";
+import { useAuth } from "./userContext";
 
 interface MessageContextType {
   allMessages: Message[] | null;
   setAllMessages: React.Dispatch<React.SetStateAction<Message[] | null>>;
+  fetchAllMessages: () => void;
 }
 
 interface Message {
@@ -21,38 +24,40 @@ interface Message {
   messageId: string;
   replyingMessage?: any;
 }
+interface loggedUser {
+  _id: string;
+}
 
-// const API_URL = "http://10.0.2.2:5000";
-const API_URL = "https://reactnativeassignment.onrender.com";
+const API_URL = "http://10.0.2.2:5000";
+// const API_URL = "https://reactnativeassignment.onrender.com";
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined);
 
-export const ContextProvider = ({ children }: { children: ReactNode }) => {
+export const MessageProvider = ({ children }: { children: ReactNode }) => {
+  const { selectedChat, loggedUser } = useAuth() as {
+    selectedChat: any;
+    loggedUser: loggedUser;
+  };
   const [allMessages, setAllMessages] = useState<Message[] | null>(null);
 
-  // Function to fetch new messages (or perform your desired update)
-  const fetchNewMessages = async () => {
+  const fetchAllMessages = async () => {
     try {
-      // Replace this URL with your API endpoint for fetching messages
-      const response = await fetch(`${API_URL}/messages`);
-      const data = await response.json();
-      setAllMessages(data);
+      const response: any = await getAllMessages(loggedUser._id);
+      if (!Array.isArray(response)) {
+        throw new TypeError("Expected chatsData to be an array");
+      }
+      if (response) {
+        await AsyncStorage.setItem("globalMessages", JSON.stringify(response));
+      }
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error("Failed to fetch messages:", error);
+    } finally {
     }
   };
-
-  useEffect(() => {
-    fetchNewMessages(); // Fetch messages initially
-    const intervalId = setInterval(() => {
-      fetchNewMessages(); // Fetch messages every 1 minute (60000 milliseconds)
-    }, 60000);
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
   return (
-    <MessageContext.Provider value={{ allMessages, setAllMessages }}>
+    <MessageContext.Provider
+      value={{ allMessages, setAllMessages, fetchAllMessages }}
+    >
       {children}
     </MessageContext.Provider>
   );

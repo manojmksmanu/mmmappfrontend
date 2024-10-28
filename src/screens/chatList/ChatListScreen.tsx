@@ -19,11 +19,13 @@ import {
 } from "../../misc/misc";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-
+import { useFocusEffect } from "@react-navigation/native";
 import { TextInput } from "react-native-gesture-handler";
 import BottomNavigation from "../../components/chatListScreenComp/BottomNavigation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatMessageDate } from "src/misc/formateMessageDate/formateMessageDate";
+import { getAllMessages } from "src/services/messageService";
+import { useMessages } from "src/context/messageContext";
 
 type RootStackParamList = {
   ChatList: undefined;
@@ -55,9 +57,10 @@ const ChatListScreen: React.FC = () => {
     setSelectedChat,
     onlineUsers,
     socket,
-    loading,
     FetchChatsAgain,
+    selectedChat
   } = useAuth();
+  const { fetchAllMessages } = useMessages();
   const [searchText, setSearchText] = useState<string>("");
   const [filteredChats, setFilteredChats] = useState<Chat[] | null>(null);
   const [showType, setShowType] = useState<string>("Home");
@@ -190,9 +193,15 @@ const ChatListScreen: React.FC = () => {
       const storedChats = await AsyncStorage.getItem("chats");
       setChatsFromStorage(storedChats);
     };
-
     fetchchatforload();
   }, []);
+console.log(selectedChat);
+  useFocusEffect(
+    useCallback(() => {
+      fetchAllMessages();
+      console.log("Back on ChatList screen");
+    }, [])
+  );
 
   const renderItem = ({ item }: { item: any }) =>
     item.chatType === "one-to-one" ? (

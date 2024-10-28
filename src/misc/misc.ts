@@ -61,7 +61,7 @@ export const getSenderStatus = (
     });
 
     if (sender) {
-      return onlineUsers.some((user) => user.userId === sender.user?._id)
+      return onlineUsers?.some((user) => user.userId === sender.user?._id)
         ? "online"
         : "offline";
     }
@@ -77,4 +77,3 @@ export const isValidEmail = (email: string): boolean => {
 export const getUserFirstLetter = (userName: any) => {
   return userName ? userName.charAt(0).toUpperCase() : "";
 };
-

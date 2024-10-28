@@ -8,7 +8,7 @@ export const markMessagesAsRead = async (
 ) => {
   try {
     // Fetch messages for the chat from local storage
-    const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
+    const storedMessages = await AsyncStorage.getItem(`globalMessages`);
     const messagesData = storedMessages ? JSON.parse(storedMessages) : [];
 
     // Update local messages to mark them as read
@@ -25,7 +25,7 @@ export const markMessagesAsRead = async (
 
     // Save updated messages to local storage
     await AsyncStorage.setItem(
-      `messages-${chatId}`,
+      `globalMessages`,
       JSON.stringify(updatedMessages)
     );
 

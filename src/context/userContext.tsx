@@ -66,7 +66,7 @@ type RootStackParamList = {
   Login: undefined;
 };
 // const API_URL = "http://10.0.2.2:5000";
-const API_URL = "https://reactnativeassignment.onrender.com";
+const API_URL = "https://mmmappbackend.onrender.com";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

@@ -1,15 +1,20 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
   TextInput,
   Image,
   StyleSheet,
-  InteractionManager,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { getMessages, markMessageRead } from "../../services/messageService";
+import { markMessageRead } from "../../services/messageService";
 import { useAuth } from "../../context/userContext";
 import RenderMessage from "../../components/chatWindowScreenComp/RenderMessage";
 import { getSendedType, getSenderName, getSenderStatus } from "../../misc/misc";
@@ -19,7 +24,7 @@ import {
   openDocumentPicker,
 } from "../../misc/fireBaseUsedFunctions/FireBaseUsedFunctions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchChats } from "src/misc/findChatsForUser/findChatsforuser";
+import { useFocusEffect } from "@react-navigation/native";
 interface User {
   _id: string;
   name: string;
@@ -40,58 +45,38 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const { chatId } = route.params;
   const [messages, setMessages] = useState<any[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingOnce, setLoadingOnce] = useState<boolean>(false);
+  const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [isReplying, setIsReplying] = useState<boolean>(false);
   const textInputRef = useRef<TextInput>(null);
-  const {
-    loggedUser,
-    selectedChat,
-    socket,
-    onlineUsers,
-    FetchChatsAgain,
-    setChats,
-    chats,
-  } = useAuth() as {
-    loggedUserId: string;
-    loggedUser: User;
-    selectedChat: any;
-    socket: any;
-    onlineUsers: any;
-    FetchChatsAgain: any;
-    setChats: any;
-    chats: any;
-  };
+
+  const { loggedUser, selectedChat, socket, onlineUsers, setChats, chats } =
+    useAuth() as {
+      loggedUserId: string;
+      loggedUser: User;
+      selectedChat: any;
+      socket: any;
+      onlineUsers: any;
+      FetchChatsAgain: any;
+      setChats: any;
+      chats: any;
+    };
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
   const [forwardMode, setForwardMode] = useState<boolean>(false);
-  const [currentSender, setCurrentSender] = useState<any>(null);
   const [sending, setSending] = useState<any[]>([]);
   const [sendingPercentage, setSendingPercentage] = useState<string>("");
   const [isSending, setIsSending] = useState<boolean>(false);
-  const [unsentMessages, setUnsentMessages] = useState([]);
-
   // ----socket connection--
   useEffect(() => {
     loadMessages(chatId);
-
     if (!socket) return;
-
     socket.emit("joinRoom", chatId);
-
     const handleReceiveMessage = (messageData: MessageData) => {
-      console.log(messageData, "socket");
-      updateMessageStatusInStorage(messageData, chatId);
-      if (messageData.sender !== loggedUser._id) {
-        saveMessageLocally(messageData);
-      }
+      saveMessageLocally(messageData);
     };
 
     const handleReceiveDocuments = (messageData: MessageData) => {
-      updateMessageStatusInStorage(messageData, chatId);
-      if (messageData.sender !== loggedUser._id) {
-        saveMessageLocally(messageData);
-      }
+      saveMessageLocally(messageData);
     };
 
     const handleForwardMessageReceived = (newMessages: MessageData[]) => {
@@ -110,82 +95,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     };
   }, []);
   // --socket connection end--
-  const updateMessageStatusInStorage = async (messageData) => {
-    console.log(messageData, "Received message data for update");
-    try {
-      // Retrieve all global messages from AsyncStorage
-      const allMessages = await AsyncStorage.getItem("globalMessages");
-      const messagesData = allMessages ? JSON.parse(allMessages) : [];
-
-      // Log the retrieved messages data
-      console.log(messagesData, "Retrieved global messages");
-
-      // Find the index of the message to update
-      const messageIndex = messagesData?.findIndex(
-        (msg) => msg.messageId === messageData.messageId
-      );
-
-      if (messageIndex !== -1) {
-        console.log("Message exists, updating status");
-        // Update the message's status and other details
-        messagesData[messageIndex] = {
-          ...messagesData[messageIndex],
-          ...messageData,
-        };
-
-        // Update state
-        setMessages(
-          messagesData.filter((msg) => msg.chatId === messageData.chatId)
-        );
-
-        // Store updated messages back to AsyncStorage
-        await AsyncStorage.setItem(
-          "globalMessages",
-          JSON.stringify(messagesData)
-        );
-        console.log("Messages updated in AsyncStorage successfully.");
-      } else {
-        console.log("Message not found for update:", messageData.messageId);
-      }
-    } catch (error) {
-      console.error("Error updating message status in storage:", error);
-    }
-  };
-
-  // const updateMessageStatusInStorage = async (messageData) => {
-  //   const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-  //   if (storedMessages) {
-  //     const messagesData = JSON.parse(storedMessages);
-  //     // Convert messages to a lookup object
-  //     const messageLookup = messagesData.reduce((acc, msg) => {
-  //       acc[msg.messageId] = msg;
-  //       return acc;
-  //     }, {});
-  //     // Only update if the message exists
-  //     if (messageLookup[messageData.messageId]) {
-  //       // Update the message in the lookup object
-  //       messageLookup[messageData.messageId] = {
-  //         ...messageLookup[messageData.messageId],
-  //         ...messageData,
-  //       };
-
-  //       // Convert back to an array
-  //       const updatedMessages = Object.values(messageLookup);
-
-  //       // Update state
-  //       setMessages(updatedMessages);
-
-  //       // Store updated messages in AsyncStorage using InteractionManager
-  //       InteractionManager.runAfterInteractions(async () => {
-  //         await AsyncStorage.setItem(
-  //           `messages-${chatId}`,
-  //           JSON.stringify(updatedMessages)
-  //         );
-  //       });
-  //     }
-  //   }
-  // };
-
   const memoizedMessages = useMemo(() => {
     const messageLookup = messages.reduce((acc, msg) => {
       acc[msg.messageId] = msg;
@@ -199,21 +108,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     });
   }, [messages]);
 
-  // -----loadMessage---
-  // const loadMessages = async () => {
-  //   const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-  //   if (storedMessages) {
-  //     setMessages(JSON.parse(storedMessages));
-  //   }
-  //   const storedUnsentMessages = await AsyncStorage.getItem(
-  //     `unsentMessages-${chatId}`
-  //   );
-  //   if (storedUnsentMessages) {
-  //     setUnsentMessages(JSON.parse(storedUnsentMessages));
-  //   }
-  // };
-
-  const loadMessages = async (chatId) => {
+  const loadMessages = async (chatId: any) => {
+    setLoadingMessages(true);
     try {
       const allMessages = await AsyncStorage.getItem("globalMessages");
       const messagesData = allMessages ? JSON.parse(allMessages) : [];
@@ -224,69 +120,78 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setMessages(chatMessages);
     } catch (error) {
       console.error("Error loading messages from AsyncStorage:", error);
+    } finally {
+      setLoadingMessages(false);
     }
   };
+  useFocusEffect(
+    useCallback(() => {
+      loadMessages(chatId);
+      markMessageRead(selectedChat._id, loggedUser._id);
+      console.log("Back on chatWIndowscreen");
+    }, [])
+  );
 
-  // -----loadMessage---
-
-  const saveMessageLocally = async (message: any) => {
-    const updatedMessages = [...messages, message];
-    setMessages((prevMessages) => [...prevMessages, message]);
-    await AsyncStorage.setItem(
-      `globalMessages`,
-      JSON.stringify(updatedMessages)
-    );
-  };
-
-  // Function to check and save or update an existing message for a specific chatId
-  const checkAndSaveMessageLocally = async (message: any, chatId: any) => {
-    const allMessages = await AsyncStorage.getItem("Messages");
-    const messagesData = allMessages ? JSON.parse(allMessages) : {};
-
-    // Find or update the existing message by its messageId
-    const chatMessages = messagesData[chatId] || [];
-    const existingMessageIndex = chatMessages.findIndex(
-      (msg) => msg.messageId === message.messageId
-    );
-
-    if (existingMessageIndex !== -1) {
-      // Update the existing message
-      chatMessages[existingMessageIndex] = {
-        ...chatMessages[existingMessageIndex],
+  const saveMessageLocally = async (message: MessageData) => {
+    try {
+      const allMessages = await AsyncStorage.getItem("globalMessages");
+      const messagesData = allMessages ? JSON.parse(allMessages) : [];
+      const messageMap = new Map(
+        messagesData.map((msg) => [msg.messageId, msg])
+      );
+      messageMap.set(message.messageId, {
+        ...(messageMap.get(message.messageId) || {}),
         ...message,
-      };
-    } else {
-      // Add the new message if it doesn't already exist
-      chatMessages.push(message);
+      });
+
+      const updatedMessages = Array.from(messageMap.values());
+      await AsyncStorage.setItem(
+        "globalMessages",
+        JSON.stringify(updatedMessages)
+      );
+
+      setMessages((prevMessages) => {
+        const messageMap = new Map(
+          prevMessages.map((msg) => [msg.messageId, msg])
+        );
+        messageMap.set(message.messageId, message);
+        return Array.from(messageMap.values());
+      });
+    } catch (error) {
+      console.error("Error saving message locally:", error);
     }
-
-    messagesData[chatId] = chatMessages;
-    setMessages(chatMessages);
-
-    await AsyncStorage.setItem("globalMessages", JSON.stringify(messagesData));
   };
-  // const checkAndSaveMessageLocally = async (message: any) => {
-  //   const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-  //   let messagesData = storedMessages ? JSON.parse(storedMessages) : [];
-  //   const existingMessageIndex = messagesData.findIndex(
-  //     (msg: any) => msg.messageId === message.messageId
-  //   );
-  //   if (existingMessageIndex !== -1) {
-  //     messagesData[existingMessageIndex] = {
-  //       ...messagesData[existingMessageIndex],
-  //       ...message,
-  //     };
-  //     // console.log('Message updated in local storage:', message);
-  //   } else {
-  //     messagesData.push(message);
-  //     // console.log('Message saved locally:', message, 'pudh');
-  //   }
-  //   setMessages(messagesData);
-  //   await AsyncStorage.setItem(
-  //     `messages-${chatId}`,
-  //     JSON.stringify(messagesData)
-  //   );
-  // };
+
+  const checkAndSaveMessageLocally = async (message: MessageData) => {
+    try {
+      const allMessages = await AsyncStorage.getItem("globalMessages");
+      const messagesData = allMessages ? JSON.parse(allMessages) : [];
+
+      if (!Array.isArray(messagesData)) {
+        throw new TypeError("Expected messagesData to be an array");
+      }
+
+      const messageMap = new Map(
+        messagesData.map((msg) => [msg.messageId, msg])
+      );
+
+      messageMap.set(message.messageId, {
+        ...(messageMap.get(message.messageId) || {}),
+        ...message,
+      });
+
+      const updatedMessages = Array.from(messageMap.values());
+
+      setMessages(updatedMessages.filter((msg) => msg.chatId === chatId));
+
+      await AsyncStorage.setItem(
+        "globalMessages",
+        JSON.stringify(updatedMessages)
+      );
+    } catch (error) {
+      console.error("Error checking and saving message locally:", error);
+    }
+  };
 
   const getUserFirstAlphabet = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
@@ -385,7 +290,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         </View>
       ),
     });
-  }, [navigation, currentSender, selectedMessages]);
+  }, [navigation, selectedMessages]);
   // ----chat window header end--
 
   const handleMoreOptions = () => {
@@ -394,114 +299,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       navigation.navigate("GroupInfo");
     }
   };
-
-  // const fetchMessages = async () => {
-  //   console.log("fetching messages function ");
-  //   setLoading(true);
-  //   try {
-  //     const response = await getMessages(chatId);
-  //     const storedMessages = await AsyncStorage.getItem(`messages-${chatId}`);
-  //     const storedMessagesData = storedMessages
-  //       ? JSON.parse(storedMessages)
-  //       : [];
-  //     console.log(
-  //       JSON.stringify(response) !== JSON.stringify(storedMessagesData)
-  //     );
-  //     if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
-  //       console.log("set value");
-  //       await AsyncStorage.setItem(
-  //         `messages-${chatId}`,
-  //         JSON.stringify(response)
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch messages:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const fetchMessages = async () => {
-  //   console.log("Fetching messages function");
-  //   setLoading(true);
-  //   try {
-  //     // Fetch messages from the server or API
-  //     const response = await getMessages(chatId);
-
-  //     // Retrieve global messages from AsyncStorage
-  //     const allMessages = await AsyncStorage.getItem("globalMessages");
-  //     const messagesData = allMessages ? JSON.parse(allMessages) : {};
-
-  //     // Get stored messages for the specific chatId
-  //     const storedMessagesData = messagesData[chatId] || [];
-
-  //     // Compare the fetched response with the stored messages
-  //     if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
-  //       console.log("Setting value for chatId:", chatId);
-
-  //       // Update the global messages storage with the new data
-  //       messagesData[chatId] = response; // Set the response for the specific chatId
-  //       await AsyncStorage.setItem(
-  //         "globalMessages",
-  //         JSON.stringify(messagesData)
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch messages:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const fetchMessagesOnceOnPageLoad = async () => {
-  //   console.log("Fetching messages function");
-  //   setLoading(true);
-  //   try {
-  //     // Fetch messages from the server or API
-  //     const response = await getMessages(chatId);
-
-  //     // Retrieve global messages from AsyncStorage
-  //     const allMessages = await AsyncStorage.getItem("globalMessages");
-  //     const messagesData = allMessages ? JSON.parse(allMessages) : {};
-
-  //     // Get stored messages for the specific chatId
-  //     const storedMessagesData = messagesData[chatId] || [];
-
-  //     // Compare the fetched response with the stored messages
-  //     if (JSON.stringify(response) !== JSON.stringify(storedMessagesData)) {
-  //       console.log("Setting value for chatId:", chatId);
-
-  //       // Update the global messages storage with the new data
-  //       messagesData[chatId] = response; // Set the response for the specific chatId
-  //       await AsyncStorage.setItem(
-  //         "globalMessages",
-  //         JSON.stringify(messagesData)
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch messages:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchMessagesOnceOnPageLoad();
-  // }, []);
-
-  useEffect(() => {
-    // markMessageRead(chatId, loggedUser._id);
-    console.log("fetch😀");
-    // fetchMessages();
-  }, [messages]);
-
-  // useEffect(() => {
-  //   const renderMessagesonOpnen = async () => {
-  //     await fetchMessages();
-  //     loadMessages(chatId);
-  //   };
-  //   renderMessagesonOpnen();
-  // }, [chatId, navigation]);
 
   const handleSwipeLeft = (item: any) => {
     setReplyingMessage(item);
@@ -619,10 +416,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   };
 
   const updateChatListWithLatestMessage = async (newMessage: any) => {
-    console.log(newMessage, "onupdate function");
     const updatedChats = chats.map((chat: any) => {
       if (chat._id === chatId) {
-        console.log(chat, "matching");
         return {
           ...chat,
           latestMessage: newMessage, // Update the last message
@@ -638,81 +433,69 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Failed to update local storage:", error);
     }
   };
-
+ const firstUnreadIndex = memoizedMessages.findIndex(
+   (msg) => msg.status === "sent" && msg.sender !== loggedUser._id
+ );
+  console.log(firstUnreadIndex);
   return (
     <View style={styles.container}>
-      {/* {
-      loading ? (
+      {loadingMessages ? (
         <ActivityIndicator
           size="large"
           color="#007bff"
           style={styles.loadingIndicator}
         />
-      ) : ( */}
-      <FlatList
-        data={memoizedMessages.slice().reverse()}
-        inverted
-        keyExtractor={(item) => item._id}
-        style={{ padding: 10 }}
-        renderItem={({ item }) => {
-          const isSelected = selectedMessages?.some(
-            (msg) => msg._id === item._id
-          );
-          return (
-            <TouchableOpacity
-              onLongPress={() => handleLongPress(item)}
-              onPress={() => handleTap(item)}
-              style={{
-                backgroundColor: isSelected ? "lightgray" : "transparent",
-              }}
-            >
-              <RenderMessage
-                item={item}
-                loggedUserId={loggedUser._id}
-                onLeftSwipe={() => handleSwipeLeft(item)}
-                onRightSwipe={() => handleSwipeRight(item)}
-              />
-            </TouchableOpacity>
-          );
-        }}
-        contentContainerStyle={{ flexGrow: 0 }}
-      />
+      ) : (
+        <FlatList
+          data={memoizedMessages.slice().reverse()}
+          inverted
+          keyExtractor={(item) => item.messageId}
+          style={{ padding: 10 }}
+          renderItem={({ item, index }) => {
+            const isSelected = selectedMessages?.some(
+              (msg) => msg.messageId === item.messageId
+            );
 
-      {/* )} */}
-      {loadingOnce && (
-        <View
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: 10,
+            // Adjust the index to account for the reversed order
+            const adjustedIndex = memoizedMessages.length - 1 - index;
+            const isFirstUnread = adjustedIndex === firstUnreadIndex-1;
+
+            return (
+              <>
+                {isFirstUnread && (
+                  <View style={{ marginVertical: 10, alignItems: "center" }}>
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: "#187afa", // Change the color as needed
+                        width: "100%", // Adjust as needed
+                        borderRadius:100
+                      }}
+                    />
+                    <Text style={{ color: "#187afa", marginTop: 5 }}>
+                      Unread Messages
+                    </Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  onLongPress={() => handleLongPress(item)}
+                  onPress={() => handleTap(item)}
+                  style={{
+                    backgroundColor: isSelected ? "lightgray" : "transparent",
+                  }}
+                >
+                  <RenderMessage
+                    item={item}
+                    loggedUserId={loggedUser._id}
+                    onLeftSwipe={() => handleSwipeLeft(item)}
+                    onRightSwipe={() => handleSwipeRight(item)}
+                  />
+                </TouchableOpacity>
+              </>
+            );
           }}
-        >
-          <View
-            style={{
-              width: 140,
-              borderRadius: 20,
-              backgroundColor: "rgba(255, 255, 255, 0.7)",
-              borderColor: "rgba(255, 255, 255, 0.5)",
-              borderWidth: 1,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 4,
-              },
-              shadowOpacity: 0.3,
-              shadowRadius: 6,
-              elevation: 5,
-              alignItems: "center",
-              padding: 5,
-            }}
-          >
-            <ActivityIndicator size="small" />
-            <Text style={{ fontSize: 10, textAlign: "center" }}>
-              Checking For New Messages
-            </Text>
-          </View>
-        </View>
+          contentContainerStyle={{ flexGrow: 0 }}
+        />
       )}
 
       <View>
