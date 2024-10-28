@@ -192,7 +192,7 @@ const RenderMessage = ({
     isSender: boolean
   ) => {
     // -----Image Message----
-    if (fileType.startsWith("image/")) {
+    if (fileType?.startsWith("image/")) {
       return (
         <TouchableOpacity onPress={() => openFileModal(fileUrl, fileType)}>
           <View style={{ width: 200, height: 200 }}>
@@ -239,7 +239,7 @@ const RenderMessage = ({
     }
 
     // -----pdf message----
-    if (fileType === "application/pdf" || fileType.startsWith("application/")) {
+    if (fileType === "application/pdf" || fileType?.startsWith("application/")) {
       return (
         <TouchableOpacity onPress={() => openFileModal(fileUrl, fileType)}>
           <View
@@ -308,7 +308,7 @@ const RenderMessage = ({
     }
 
     // ------video message ------
-    if (fileType === "video/mp4" || String(fileType).startsWith("video/")) {
+    if (fileType === "video/mp4" || String(fileType)?.startsWith("video/")) {
       return (
         <TouchableOpacity onPress={() => openFileModal(fileUrl, fileType)}>
           <View

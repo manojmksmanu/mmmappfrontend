@@ -131,7 +131,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.log("Back on chatWIndowscreen");
     }, [])
   );
-
   const saveMessageLocally = async (message: MessageData) => {
     try {
       const allMessages = await AsyncStorage.getItem("globalMessages");

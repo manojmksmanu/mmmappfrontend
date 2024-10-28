@@ -58,15 +58,27 @@ const ChatListScreen: React.FC = () => {
     onlineUsers,
     socket,
     FetchChatsAgain,
-    selectedChat
-  } = useAuth();
+    selectedChat,
+  } = useAuth() as {
+    setLoggedUser: any;
+    setChats: any;
+    chats: any;
+    setSelectedChat: any;
+    onlineUsers: any;
+    socket: any;
+    FetchChatsAgain: any;
+    selectedChat: any;
+    loggedUser: User;
+  };
   const { fetchAllMessages } = useMessages();
   const [searchText, setSearchText] = useState<string>("");
   const [filteredChats, setFilteredChats] = useState<Chat[] | null>(null);
   const [showType, setShowType] = useState<string>("Home");
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatsFromStorage, setChatsFromStorage] = useState<string | null>(null);
-
+  const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>(
+    {}
+  );
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
 
@@ -165,12 +177,25 @@ const ChatListScreen: React.FC = () => {
 
   // ---fetch Again active----
   useEffect(() => {
-    socket?.on("userIsDeleted", (data) => {
+    if (!socket) {
+      console.log("not socket connected");
+      return;
+    }
+    const handleUserDeleted = (data) => {
       FetchChatsAgain();
+    };
+
+    socket?.on("userIsDeleted", handleUserDeleted);
+    socket.on("fetchAgain", async () => {
+      await fetchAllMessages(); // Wait for fetchAllMessages to complete
+      await loadUnreadCounts(); // Then call loadUnreadCounts
+      await fetchchatforload();
     });
-    socket?.on("fetchAgain", () => {
-      FetchChatsAgain();
-    });
+
+    return () => {
+      socket?.off("userIsDeleted", handleUserDeleted);
+      socket?.off("fetchAgain", FetchChatsAgain);
+    };
   }, [socket]);
 
   //---Navigate to GroupCreate
@@ -188,20 +213,53 @@ const ChatListScreen: React.FC = () => {
   );
 
   // -----function to check chats in local storage
-  useEffect(() => {
-    const fetchchatforload = async () => {
+  const fetchchatforload = async () => {
+    try {
       const storedChats = await AsyncStorage.getItem("chats");
       setChatsFromStorage(storedChats);
-    };
+    } catch (error) {
+      console.error("Failed to load chats from storage", error);
+    }
+  };
+  useEffect(() => {
     fetchchatforload();
   }, []);
-console.log(selectedChat);
+  const loadUnreadCounts = async () => {
+    console.log("load");
+    const counts = await countUnreadMessages();
+    console.log(counts, "counts");
+    console.log("set");
+    setUnreadCounts(counts);
+    console.log(unreadCounts, "unreadcouts");
+    return counts;
+  };
   useFocusEffect(
     useCallback(() => {
-      fetchAllMessages();
-      console.log("Back on ChatList screen");
+      const fetchData = async () => {
+        console.log("back to chatlist");
+        await fetchAllMessages(); // Wait for fetchAllMessages to complete
+        await loadUnreadCounts(); // Then call loadUnreadCounts
+        await fetchchatforload(); // Finally, call fetchchatforload
+      };
+
+      fetchData(); // Invoke the async function
     }, [])
   );
+  const countUnreadMessages = async () => {
+    const chatUnreadCount = {};
+    const messagesJson = await AsyncStorage.getItem("globalMessages");
+    const messages = messagesJson ? JSON.parse(messagesJson) : [];
+    messages.forEach((message: any) => {
+      const { chatId, readBy } = message;
+      if (!readBy.includes(loggedUser._id)) {
+        if (!chatUnreadCount[chatId]) {
+          chatUnreadCount[chatId] = 0;
+        }
+        chatUnreadCount[chatId] += 1;
+      }
+    });
+    return chatUnreadCount;
+  };
 
   const renderItem = ({ item }: { item: any }) =>
     item.chatType === "one-to-one" ? (
@@ -255,6 +313,9 @@ console.log(selectedChat);
                     })()
                   : ""}
               </Text>
+              {unreadCounts[item._id] && (
+                <Text style={{ color: "black" }}>{unreadCounts[item._id]}</Text>
+              )}
               <Text style={styles.time}>
                 {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
                 {loggedUser && formatMessageDate(item?.updatedAt)}
@@ -300,6 +361,9 @@ console.log(selectedChat);
                     })()
                   : ""}
               </Text>
+              {unreadCounts[item._id] && (
+                <Text style={{ color: "black" }}>{unreadCounts[item._id]}</Text>
+              )}
               <Text style={styles.time}>
                 {loggedUser && formatMessageDate(item.latestMessage?.createdAt)}
               </Text>
