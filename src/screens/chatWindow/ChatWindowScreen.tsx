@@ -25,6 +25,8 @@ import {
 } from "../../misc/fireBaseUsedFunctions/FireBaseUsedFunctions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { FlatList as RNFlatList } from "react-native"; // Importing FlatList from react-native
+import { FlatList as GestureFlatList } from "react-native-gesture-handler";
 interface User {
   _id: string;
   name: string;
@@ -66,6 +68,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [sending, setSending] = useState<any[]>([]);
   const [sendingPercentage, setSendingPercentage] = useState<string>("");
   const [isSending, setIsSending] = useState<boolean>(false);
+  const flatListRef = useRef<GestureFlatList<any>>(null);
   // ----socket connection--
   useEffect(() => {
     loadMessages(chatId);
@@ -432,9 +435,29 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Failed to update local storage:", error);
     }
   };
- const firstUnreadIndex = memoizedMessages.findIndex(
-   (msg) => msg.status === "sent" && msg.sender !== loggedUser._id
- );
+  const firstUnreadIndex = memoizedMessages.findIndex(
+    (msg) => msg.status === "sent" && msg.sender !== loggedUser._id
+  );
+  const ITEM_HEIGHT = 60;
+  useEffect(() => {
+    if (
+      firstUnreadIndex !== null &&
+      firstUnreadIndex >= 0 &&
+      flatListRef.current
+    ) {
+      const indexToScroll = memoizedMessages.length - 1 - firstUnreadIndex; // Adjust for inverted list
+
+      // Ensure the index is within bounds
+      if (indexToScroll >= 0 && indexToScroll < memoizedMessages.length) {
+        flatListRef.current.scrollToIndex({
+          index: indexToScroll,
+          animated: true,
+          viewPosition: 0.5, // Center the unread message in the view
+        });
+      }
+    }
+  }, [firstUnreadIndex, memoizedMessages]); // Depend on memoizedMessages
+
   console.log(firstUnreadIndex);
   return (
     <View style={styles.container}>
@@ -445,11 +468,21 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
           style={styles.loadingIndicator}
         />
       ) : (
-        <FlatList
+        <GestureFlatList
+          ref={flatListRef}
           data={memoizedMessages.slice().reverse()}
           inverted
           keyExtractor={(item) => item.messageId}
           style={{ padding: 10 }}
+          getItemLayout={(data, index) => ({
+            length: ITEM_HEIGHT,
+            offset: ITEM_HEIGHT * index,
+            index,
+          })}
+          onScrollToIndexFailed={(info) => {
+            console.warn("Scroll to index failed", info);
+            // Optionally, handle fallback here
+          }}
           renderItem={({ item, index }) => {
             const isSelected = selectedMessages?.some(
               (msg) => msg.messageId === item.messageId
@@ -457,7 +490,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
             // Adjust the index to account for the reversed order
             const adjustedIndex = memoizedMessages.length - 1 - index;
-            const isFirstUnread = adjustedIndex === firstUnreadIndex-1;
+            const isFirstUnread = adjustedIndex === firstUnreadIndex - 1;
 
             return (
               <>
@@ -468,7 +501,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
                         height: 1,
                         backgroundColor: "#187afa", // Change the color as needed
                         width: "100%", // Adjust as needed
-                        borderRadius:100
+                        borderRadius: 100,
                       }}
                     />
                     <Text style={{ color: "#187afa", marginTop: 5 }}>

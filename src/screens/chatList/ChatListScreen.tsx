@@ -313,13 +313,36 @@ const ChatListScreen: React.FC = () => {
                     })()
                   : ""}
               </Text>
-              {unreadCounts[item._id] && (
-                <Text style={{ color: "black" }}>{unreadCounts[item._id]}</Text>
-              )}
-              <Text style={styles.time}>
-                {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
-                {loggedUser && formatMessageDate(item?.updatedAt)}
-              </Text>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                {unreadCounts[item._id] && (
+                  <Text
+                    style={{
+                      color: "white",
+                      fontWeight: "700",
+                      backgroundColor: "#187afa",
+                      borderRadius: 50, // Border radius should be half of width/height to make a circle
+                      width: 22, // Set desired circle diameter
+                      height: 22,
+                      textAlign: "center",
+                      lineHeight: 22, // Match lineHeight to height to vertically center text
+                      fontSize: 12, // Adjust font size as needed
+                    }}
+                  >
+                    {unreadCounts[item._id]}
+                  </Text>
+                )}
+                <Text style={styles.time}>
+                  {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
+                  {loggedUser && formatMessageDate(item?.updatedAt)}
+                </Text>
+              </View>
             </View>
           ) : (
             ""
@@ -361,12 +384,36 @@ const ChatListScreen: React.FC = () => {
                     })()
                   : ""}
               </Text>
-              {unreadCounts[item._id] && (
-                <Text style={{ color: "black" }}>{unreadCounts[item._id]}</Text>
-              )}
-              <Text style={styles.time}>
-                {loggedUser && formatMessageDate(item.latestMessage?.createdAt)}
-              </Text>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                {unreadCounts[item._id] && (
+                  <Text
+                    style={{
+                      color: "white",
+                      fontWeight: "700",
+                      backgroundColor: "#187afa",
+                      borderRadius: 50, // Border radius should be half of width/height to make a circle
+                      width: 22, // Set desired circle diameter
+                      height: 22,
+                      textAlign: "center",
+                      lineHeight: 22, // Match lineHeight to height to vertically center text
+                      fontSize: 12, // Adjust font size as needed
+                    }}
+                  >
+                    {unreadCounts[item._id]}
+                  </Text>
+                )}
+                <Text style={styles.time}>
+                  {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
+                  {loggedUser && formatMessageDate(item?.updatedAt)}
+                </Text>
+              </View>
             </View>
           ) : (
             ""
