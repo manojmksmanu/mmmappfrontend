@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatMessageDate } from "src/misc/formateMessageDate/formateMessageDate";
 import { getAllMessages } from "src/services/messageService";
 import { useMessages } from "src/context/messageContext";
+import { useUpdateChatList } from "src/context/updateChatListContext";
 
 type RootStackParamList = {
   ChatList: undefined;
@@ -59,6 +60,7 @@ const ChatListScreen: React.FC = () => {
     socket,
     FetchChatsAgain,
     selectedChat,
+    debounceFetchChats,
   } = useAuth() as {
     setLoggedUser: any;
     setChats: any;
@@ -69,6 +71,7 @@ const ChatListScreen: React.FC = () => {
     FetchChatsAgain: any;
     selectedChat: any;
     loggedUser: User;
+    debounceFetchChats: any;
   };
   const { fetchAllMessages } = useMessages();
   const [searchText, setSearchText] = useState<string>("");
@@ -76,9 +79,11 @@ const ChatListScreen: React.FC = () => {
   const [showType, setShowType] = useState<string>("Home");
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatsFromStorage, setChatsFromStorage] = useState<string | null>(null);
-  const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>(
-    {}
-  );
+  // const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>(
+  //   {}
+  // );
+  const {unreadCounts} = useUpdateChatList();
+  console.log(unreadCounts,'unreadcounts')
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
 
@@ -176,27 +181,35 @@ const ChatListScreen: React.FC = () => {
   }, [navigation, loggedUser]);
 
   // ---fetch Again active----
-  useEffect(() => {
-    if (!socket) {
-      console.log("not socket connected");
-      return;
-    }
-    const handleUserDeleted = (data) => {
-      FetchChatsAgain();
-    };
-
-    socket?.on("userIsDeleted", handleUserDeleted);
-    socket.on("fetchAgain", async () => {
-      await fetchAllMessages(); // Wait for fetchAllMessages to complete
-      await loadUnreadCounts(); // Then call loadUnreadCounts
-      await fetchchatforload();
-    });
-
-    return () => {
-      socket?.off("userIsDeleted", handleUserDeleted);
-      socket?.off("fetchAgain", FetchChatsAgain);
-    };
-  }, [socket]);
+  // useEffect(() => {
+  //   if (!socket) {
+  //     console.log("not socket connected");
+  //     return;
+  //   }
+  //   const handleUserDeleted = async (data) => {
+  //     await FetchChatsAgain();
+  //     await debounceFetchChats();
+  //   };
+  //   socket?.on("userIsDeleted", handleUserDeleted);
+  //   const handleFetchAgain = async () => {
+  //     const allMessages = await fetchAllMessages();
+  //     await loadUnreadCounts();
+  //     // await fetchchatforload();
+  //     await updateChatListWithLatestMessages(allMessages);
+  //     // await debounceFetchChats();
+  //   };
+  //   socket.on("fetchAgain", (data) => {
+  //     console.log(data, "fetchAgainData");
+  //     const chatExists = chats?.some((chat: any) => chat._id === data);
+  //     if (chatExists) {
+  //       handleFetchAgain();
+  //     }
+  //   });
+  //   return () => {
+  //     socket?.off("userIsDeleted", handleUserDeleted);
+  //     socket?.off("fetchAgain", FetchChatsAgain);
+  //   };
+  // }, [socket]);
 
   //---Navigate to GroupCreate
   const clickCreateGroup = () => {
@@ -211,7 +224,6 @@ const ChatListScreen: React.FC = () => {
     },
     [navigation, setSelectedChat]
   );
-
   // -----function to check chats in local storage
   const fetchchatforload = async () => {
     try {
@@ -224,43 +236,22 @@ const ChatListScreen: React.FC = () => {
   useEffect(() => {
     fetchchatforload();
   }, []);
-  const loadUnreadCounts = async () => {
-    console.log("load");
-    const counts = await countUnreadMessages();
-    console.log(counts, "counts");
-    console.log("set");
-    setUnreadCounts(counts);
-    console.log(unreadCounts, "unreadcouts");
-    return counts;
-  };
-  useFocusEffect(
-    useCallback(() => {
-      const fetchData = async () => {
-        console.log("back to chatlist");
-        await fetchAllMessages(); // Wait for fetchAllMessages to complete
-        await loadUnreadCounts(); // Then call loadUnreadCounts
-        await fetchchatforload(); // Finally, call fetchchatforload
-      };
 
-      fetchData(); // Invoke the async function
-    }, [])
-  );
-  const countUnreadMessages = async () => {
-    const chatUnreadCount = {};
-    const messagesJson = await AsyncStorage.getItem("globalMessages");
-    const messages = messagesJson ? JSON.parse(messagesJson) : [];
-    messages.forEach((message: any) => {
-      const { chatId, readBy } = message;
-      if (!readBy.includes(loggedUser._id)) {
-        if (!chatUnreadCount[chatId]) {
-          chatUnreadCount[chatId] = 0;
-        }
-        chatUnreadCount[chatId] += 1;
-      }
-    });
-    return chatUnreadCount;
-  };
-
+  // const countUnreadMessages = async () => {
+  //   const chatUnreadCount = {};
+  //   const messagesJson = await AsyncStorage.getItem("globalMessages");
+  //   const messages = messagesJson ? JSON.parse(messagesJson) : [];
+  //   messages.forEach((message: any) => {
+  //     const { chatId, readBy } = message;
+  //     if (!readBy.includes(loggedUser._id)) {
+  //       if (!chatUnreadCount[chatId]) {
+  //         chatUnreadCount[chatId] = 0;
+  //       }
+  //       chatUnreadCount[chatId] += 1;
+  //     }
+  //   });
+  //   return chatUnreadCount;
+  // };
   const renderItem = ({ item }: { item: any }) =>
     item.chatType === "one-to-one" ? (
       <TouchableOpacity

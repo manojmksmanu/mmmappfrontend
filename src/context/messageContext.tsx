@@ -27,10 +27,6 @@ interface Message {
 interface loggedUser {
   _id: string;
 }
-
-const API_URL = "http://10.0.2.2:5000";
-// const API_URL = "https://reactnativeassignment.onrender.com";
-
 const MessageContext = createContext<MessageContextType | undefined>(undefined);
 
 export const MessageProvider = ({ children }: { children: ReactNode }) => {
@@ -42,13 +38,9 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
   const fetchAllMessages = async () => {
     try {
       const response: any = await getAllMessages(loggedUser._id);
-
-      // Check if the response is valid
       if (!Array.isArray(response)) {
         throw new TypeError("Expected chatsData to be an array");
       }
-
-      // If there are new messages, save them to AsyncStorage
       if (response.length > 0) {
         await AsyncStorage.setItem("globalMessages", JSON.stringify(response));
         const data = await AsyncStorage.getItem("globalMessages");
@@ -59,34 +51,18 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error("Failed to fetch messages:", error);
-
-      // Attempt to retrieve saved messages from AsyncStorage
       const savedMessages = await AsyncStorage.getItem("globalMessages");
       if (savedMessages) {
         console.log("Using saved messages from AsyncStorage due to error.");
-        return JSON.parse(savedMessages); // Return saved messages if they exist
+        return JSON.parse(savedMessages); 
       } else {
         console.log("No saved messages found.");
-        return []; // Return an empty array if no messages are saved
+        return []; 
       }
     }
   };
 
-  //   const fetchAllMessages = async () => {
-  //     try {
-  //       const response: any = await getAllMessages(loggedUser._id);
-  //       if (!Array.isArray(response)) {
-  //         throw new TypeError("Expected chatsData to be an array");
-  //       }
-  //       if (response) {
-  //         console.log('helloskhdfkj')
-  //         await AsyncStorage.setItem("globalMessages", JSON.stringify(response));
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch messages:", error);
-  //     } finally {
-  //     }
-  //   };
+
   return (
     <MessageContext.Provider
       value={{ allMessages, setAllMessages, fetchAllMessages }}

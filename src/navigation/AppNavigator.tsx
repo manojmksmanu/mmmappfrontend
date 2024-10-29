@@ -20,7 +20,6 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator: React.FC = () => {
   const { loggedUser, loadingLoggedUser } = useAuth();
-  console.log(loadingLoggedUser);
   if (loadingLoggedUser) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

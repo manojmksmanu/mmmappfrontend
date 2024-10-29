@@ -141,7 +141,6 @@ const RenderMessage = ({
       );
 
       const { uri }: any = await downloadResumable.downloadAsync();
-      console.log("File downloaded successfully to:", uri);
       Alert.alert(
         "Download Complete",
         `File downloaded successfully to: ${uri}`
@@ -437,6 +436,12 @@ const RenderMessage = ({
             {isSender && item.status === "uploading" && (
               <Image
                 source={require("../../../assets/time.png")}
+                style={styles.tickIcon}
+              />
+            )}
+            {isSender && item.status === "read" && (
+              <Image
+                source={require("../../../assets/check1.png")}
                 style={styles.tickIcon}
               />
             )}

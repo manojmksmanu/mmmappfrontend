@@ -76,13 +76,18 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     socket.emit("joinRoom", chatId);
     const handleReceiveMessage = (messageData: MessageData) => {
       saveMessageLocally(messageData);
+      if (messageData.sender !== loggedUser._id) {
+        updateChatListWithLatestMessage(messageData);
+      }
     };
 
     const handleReceiveDocuments = (messageData: MessageData) => {
+      markMessageRead(selectedChat._id, loggedUser._id);
       saveMessageLocally(messageData);
     };
 
     const handleForwardMessageReceived = (newMessages: MessageData[]) => {
+      markMessageRead(selectedChat._id, loggedUser._id);
       console.log(newMessages, "forward messages");
       setMessages((prevMessages) => [...prevMessages, ...newMessages]);
     };
@@ -131,7 +136,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     useCallback(() => {
       loadMessages(chatId);
       markMessageRead(selectedChat._id, loggedUser._id);
-      console.log("Back on chatWIndowscreen");
     }, [])
   );
   const saveMessageLocally = async (message: MessageData) => {
@@ -393,7 +397,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     setReplyingMessage("");
     setMessage("");
     const messageId = Date.now().toString();
-    console.log(messageId, "generating id");
     const newMessage = {
       chatId,
       sender: loggedUser._id,
@@ -406,7 +409,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       status: "unsent",
     };
     await updateChatListWithLatestMessage(newMessage);
-    console.log(newMessage, "newmessage");
     if (socket) {
       try {
         socket.emit("sendMessage", newMessage);
@@ -418,27 +420,34 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   };
 
   const updateChatListWithLatestMessage = async (newMessage: any) => {
-    const updatedChats = chats.map((chat: any) => {
+    const updatedChats = chats?.map((chat: any) => {
       if (chat._id === chatId) {
         return {
           ...chat,
           latestMessage: newMessage, // Update the last message
-          updatedAt: new Date().toISOString(), // Optionally, update the timestamp
+          updatedAt: new Date().toISOString(), // Update the timestamp
         };
       }
       return chat;
     });
-    setChats(updatedChats);
+    // Sort updatedChats by `updatedAt` to ensure the most recent one appears first
+    const sortedChats = updatedChats?.sort(
+      (a, b) =>
+        new Date(b.updatedAt as string).getTime() -
+        new Date(a.updatedAt as string).getTime()
+    );
+    setChats(sortedChats);
     try {
-      await AsyncStorage.setItem("chats", JSON.stringify(updatedChats));
+      await AsyncStorage.setItem("chats", JSON.stringify(sortedChats));
     } catch (error) {
       console.error("Failed to update local storage:", error);
     }
   };
+
   const firstUnreadIndex = memoizedMessages.findIndex(
     (msg) => msg.status === "sent" && msg.sender !== loggedUser._id
   );
-  const ITEM_HEIGHT = 60;
+  // const ITEM_HEIGHT = 60;
   useEffect(() => {
     if (
       firstUnreadIndex !== null &&
@@ -458,7 +467,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     }
   }, [firstUnreadIndex, memoizedMessages]); // Depend on memoizedMessages
 
-  console.log(firstUnreadIndex);
   return (
     <View style={styles.container}>
       {loadingMessages ? (
@@ -469,25 +477,24 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         />
       ) : (
         <GestureFlatList
-          ref={flatListRef}
+          // ref={flatListRef}
           data={memoizedMessages.slice().reverse()}
           inverted
           keyExtractor={(item) => item.messageId}
           style={{ padding: 10 }}
-          getItemLayout={(data, index) => ({
-            length: ITEM_HEIGHT,
-            offset: ITEM_HEIGHT * index,
-            index,
-          })}
-          onScrollToIndexFailed={(info) => {
-            console.warn("Scroll to index failed", info);
-            // Optionally, handle fallback here
-          }}
+          // getItemLayout={(data, index) => ({
+          //   length: ITEM_HEIGHT,
+          //   offset: ITEM_HEIGHT * index,
+          //   index,
+          // })}
+          // onScrollToIndexFailed={(info) => {
+          //   console.warn("Scroll to index failed", info);
+          //   // Optionally, handle fallback here
+          // }}
           renderItem={({ item, index }) => {
             const isSelected = selectedMessages?.some(
               (msg) => msg.messageId === item.messageId
             );
-
             // Adjust the index to account for the reversed order
             const adjustedIndex = memoizedMessages.length - 1 - index;
             const isFirstUnread = adjustedIndex === firstUnreadIndex - 1;

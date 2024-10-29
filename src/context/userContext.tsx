@@ -45,6 +45,7 @@ interface AuthContextType {
   socket: Socket | null; // Add socket
   setSocket: React.Dispatch<React.SetStateAction<Socket | null>>; // Add setSocket
   FetchChatsAgain: () => void; // Add this line
+  debounceFetchChats: () => void;
 }
 
 interface Message {
@@ -105,11 +106,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    socket?.on("userIsDeleted", ( ) => {
+    socket?.on("userIsDeleted", () => {
       FetchChatsAgain();
     });
     socket?.on("fetchAgain", () => {
       FetchChatsAgain();
+      debounceFetchChats();
     });
   }, [socket]);
 
@@ -182,6 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         onlineUsers,
         loading,
         loadingLoggedUser,
+        debounceFetchChats,
       }}
     >
       {children}

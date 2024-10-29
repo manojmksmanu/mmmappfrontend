@@ -133,7 +133,7 @@ export const uploadToFirebaseDocument = async (
           const newMessage = {
             ...tempMessage,
             fileUrl: downloadURL,
-            status: "sent",
+            status: "unsent",
           };
 
           if (socket) {

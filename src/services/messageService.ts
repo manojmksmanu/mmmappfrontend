@@ -6,8 +6,8 @@ interface User {
   name: string;
   userType: any;
 }
-// const API_URL = "https://mmmappbackend.onrender.com/api";
-const API_URL = "http://10.0.2.2:5000/api";
+const API_URL = "https://mmmappbackend.onrender.com/api";
+// const API_URL = "http://10.0.2.2:5000/api";
 export const getMessages = async (chatId: string): Promise<any[]> => {
   const token = await AsyncStorage.getItem("token");
   const response = await axios.get(`${API_URL}/messages/${chatId}`, {
@@ -109,7 +109,7 @@ export const markMessageRead = async (chatId: any, userId: any) => {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-    console.log("marked");
+    console.log("marked😀😀😀😀😀😀😀😀😀😀");
     return response.data; // Return the response data if needed
   } catch (error) {
     console.error("Error marking message as read:", error);
