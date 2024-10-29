@@ -96,7 +96,7 @@ export const fetchChats = async (
         )
     );
 
-    // console.log("New Chats:", newChats);
+    console.log("New Chats:", newChats);
 
     // Only update local storage and state if there are new chats
     if (newChats.length > 0) {

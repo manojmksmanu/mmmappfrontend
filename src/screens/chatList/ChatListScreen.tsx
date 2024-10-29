@@ -60,7 +60,6 @@ const ChatListScreen: React.FC = () => {
     socket,
     FetchChatsAgain,
     selectedChat,
-    debounceFetchChats,
   } = useAuth() as {
     setLoggedUser: any;
     setChats: any;
@@ -71,7 +70,6 @@ const ChatListScreen: React.FC = () => {
     FetchChatsAgain: any;
     selectedChat: any;
     loggedUser: User;
-    debounceFetchChats: any;
   };
   const { fetchAllMessages } = useMessages();
   const [searchText, setSearchText] = useState<string>("");
@@ -83,7 +81,6 @@ const ChatListScreen: React.FC = () => {
   //   {}
   // );
   const {unreadCounts} = useUpdateChatList();
-  console.log(unreadCounts,'unreadcounts')
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
 
@@ -234,6 +231,7 @@ const ChatListScreen: React.FC = () => {
     }
   };
   useEffect(() => {
+    FetchChatsAgain();
     fetchchatforload();
   }, []);
 

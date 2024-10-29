@@ -45,7 +45,6 @@ interface AuthContextType {
   socket: Socket | null; // Add socket
   setSocket: React.Dispatch<React.SetStateAction<Socket | null>>; // Add setSocket
   FetchChatsAgain: () => void; // Add this line
-  debounceFetchChats: () => void;
 }
 
 interface Message {
@@ -82,10 +81,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingLoggedUser, setLoadingLoggedUser] = useState<boolean>(true);
 
-  const FetchChatsAgain = () => {
-    setFetchAgain((prev) => !prev);
-  };
-
   // --fetch user info and store in localStorage userInfo--
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -111,7 +106,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     socket?.on("fetchAgain", () => {
       FetchChatsAgain();
-      debounceFetchChats();
     });
   }, [socket]);
 
@@ -149,19 +143,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [socket, loggedUser]);
 
   // AsyncStorage.removeItem('chats')
-
+  const FetchChatsAgain = () => {
+    if (loggedUser) {
+      fetchChats(setLoading, setChats, loggedUser);
+    }
+  };
   // Fetch chats
-  const debounceFetchChats = useCallback(
-    debounce(() => {
-      if (loggedUser) {
-        fetchChats(setLoading, setChats, loggedUser);
-      }
-    }, 300), // 300 milliseconds debounce
-    [loggedUser]
-  );
 
   useEffect(() => {
-    debounceFetchChats();
+    FetchChatsAgain();
   }, [loggedUser, fetchAgain]);
   // Fetch Chats end here
 
@@ -184,7 +174,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         onlineUsers,
         loading,
         loadingLoggedUser,
-        debounceFetchChats,
       }}
     >
       {children}
