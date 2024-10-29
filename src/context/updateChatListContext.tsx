@@ -37,10 +37,20 @@ export const ChatListUpdateProvider = ({
   );
   const handleFetchAgain = async () => {
     const allMessages = await fetchAllMessages();
-    console.log(allMessages[0], "recent message");
-    await loadUnreadCounts();
+    const updatedUnreadCounts = await loadUnreadCounts(); // Get fresh counts
     await updateChatListWithLatestMessages(allMessages);
+
+    // Update AsyncStorage with the latest unread counts if there are changes
+    try {
+      await AsyncStorage.setItem(
+        "unreadCounts",
+        JSON.stringify(updatedUnreadCounts)
+      );
+    } catch (error) {
+      console.error("Failed to save unread counts to local storage:", error);
+    }
   };
+
   useEffect(() => {
     if (!socket) {
       console.log("Socket is not connected");
@@ -51,17 +61,48 @@ export const ChatListUpdateProvider = ({
       return;
     }
     socket.on("fetchAgain", (data) => {
-      console.log(data, "fetchAgainData");
       const chatExists = chats.some((chat: any) => chat._id === data);
       if (chatExists) {
         handleFetchAgain();
-        console.log(unreadCounts, "Unread counts");
       }
     });
     return () => {
       socket.off("fetchAgain");
     };
-  }, [socket, chats]); 
+  }, [socket, chats]);
+  // Step 1: Load initial unread counts from AsyncStorage
+  useEffect(() => {
+    const loadInitialUnreadCounts = async () => {
+      try {
+        const savedUnreadCounts = await AsyncStorage.getItem("unreadCounts");
+        if (savedUnreadCounts) {
+          setUnreadCounts(JSON.parse(savedUnreadCounts));
+        }
+      } catch (error) {
+        console.error("Failed to load unread counts:", error);
+      }
+    };
+    loadInitialUnreadCounts();
+  }, []);
+  const loadUnreadCounts = async () => {
+    const counts = await countUnreadMessages();
+    setUnreadCounts(counts);
+    return counts;
+  };
+
+  const countUnreadMessages = async () => {
+    const chatUnreadCount = new Map();
+    const messagesJson = await AsyncStorage.getItem("globalMessages");
+    const messages = messagesJson ? JSON.parse(messagesJson) : [];
+    const loggedUserId = loggedUser._id;
+    messages.forEach((message: any) => {
+      const { chatId, readBy } = message;
+      if (!readBy?.includes(loggedUserId)) {
+        chatUnreadCount.set(chatId, (chatUnreadCount.get(chatId) || 0) + 1);
+      }
+    });
+    return Object.fromEntries(chatUnreadCount);
+  };
 
   const updateChatListWithLatestMessages = async (allMessages) => {
     const latestMessagesByChatId = {};
@@ -102,26 +143,26 @@ export const ChatListUpdateProvider = ({
     }
   };
 
-  const loadUnreadCounts = async () => {
-    const counts = await countUnreadMessages();
-    setUnreadCounts(counts);
-    return counts;
-  };
+  //   const loadUnreadCounts = async () => {
+  //     const counts = await countUnreadMessages();
+  //     setUnreadCounts(counts);
+  //     return counts;
+  //   };
 
-  const countUnreadMessages = async () => {
-    const chatUnreadCount = new Map();
-    const messagesJson = await AsyncStorage.getItem("globalMessages");
-    const messages = messagesJson ? JSON.parse(messagesJson) : [];
-    const loggedUserId = loggedUser._id;
-    messages.forEach((message: any) => {
-      const { chatId, readBy } = message;
-      if (!readBy.includes(loggedUserId)) {
-        chatUnreadCount.set(chatId, (chatUnreadCount.get(chatId) || 0) + 1);
-      }
-    });
-    const result = Object.fromEntries(chatUnreadCount);
-    return result;
-  };
+  //   const countUnreadMessages = async () => {
+  //     const chatUnreadCount = new Map();
+  //     const messagesJson = await AsyncStorage.getItem("globalMessages");
+  //     const messages = messagesJson ? JSON.parse(messagesJson) : [];
+  //     const loggedUserId = loggedUser._id;
+  //     messages.forEach((message: any) => {
+  //       const { chatId, readBy } = message;
+  //       if (!readBy.includes(loggedUserId)) {
+  //         chatUnreadCount.set(chatId, (chatUnreadCount.get(chatId) || 0) + 1);
+  //       }
+  //     });
+  //     const result = Object.fromEntries(chatUnreadCount);
+  //     return result;
+  //   };
   return (
     <ChatListUpdateContext.Provider value={{ unreadCounts, handleFetchAgain }}>
       {children}

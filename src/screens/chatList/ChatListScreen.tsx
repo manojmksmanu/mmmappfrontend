@@ -80,7 +80,7 @@ const ChatListScreen: React.FC = () => {
   // const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>(
   //   {}
   // );
-  const {unreadCounts} = useUpdateChatList();
+  const { unreadCounts } = useUpdateChatList();
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
 
@@ -285,7 +285,13 @@ const ChatListScreen: React.FC = () => {
           </View>
           {loggedUser && item.latestMessage ? (
             <View style={styles.userHeader}>
-              <Text style={styles.message}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                  marginBottom: 4,
+                }}
+              >
                 {loggedUser
                   ? (() => {
                       const latestMessage = item.latestMessage?.message || "";
@@ -327,7 +333,12 @@ const ChatListScreen: React.FC = () => {
                     {unreadCounts[item._id]}
                   </Text>
                 )}
-                <Text style={styles.time}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                  }}
+                >
                   {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
                   {loggedUser && formatMessageDate(item?.updatedAt)}
                 </Text>
@@ -356,7 +367,13 @@ const ChatListScreen: React.FC = () => {
           </View>
           {loggedUser && item.latestMessage ? (
             <View style={styles.userHeader}>
-              <Text style={styles.message}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                  marginBottom: 4,
+                }}
+              >
                 {loggedUser
                   ? (() => {
                       const latestMessage = item.latestMessage?.message || "";
@@ -398,7 +415,12 @@ const ChatListScreen: React.FC = () => {
                     {unreadCounts[item._id]}
                   </Text>
                 )}
-                <Text style={styles.time}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                  }}
+                >
                   {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
                   {loggedUser && formatMessageDate(item?.updatedAt)}
                 </Text>
@@ -423,8 +445,8 @@ const ChatListScreen: React.FC = () => {
           <View style={styles.content}>
             <View style={styles.searchContainer}>
               <Image
-                style={styles.icon}
-                source={require("../../../assets/search.png")}
+                style={{ width: 25, height: 25, opacity: 1 }}
+                source={require("../../../assets/searchblue.png")}
               />
               <TextInput
                 style={styles.input}

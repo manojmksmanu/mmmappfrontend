@@ -27,6 +27,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlatList as RNFlatList } from "react-native"; // Importing FlatList from react-native
 import { FlatList as GestureFlatList } from "react-native-gesture-handler";
+import { useUpdateChatList } from "src/context/updateChatListContext";
+import { useMessages } from "src/context/messageContext";
 interface User {
   _id: string;
   name: string;
@@ -69,6 +71,9 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [sendingPercentage, setSendingPercentage] = useState<string>("");
   const [isSending, setIsSending] = useState<boolean>(false);
   const flatListRef = useRef<GestureFlatList<any>>(null);
+  const { handleFetchAgain } = useUpdateChatList();
+  const { fetchAllMessages } = useMessages();
+  const [unread, setunread] = useState(true);
   // ----socket connection--
   useEffect(() => {
     loadMessages(chatId);
@@ -76,18 +81,17 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     socket.emit("joinRoom", chatId);
     const handleReceiveMessage = (messageData: MessageData) => {
       saveMessageLocally(messageData);
+      setunread(false);
+      // markMessageRead(selectedChat._id, loggedUser._id);
       if (messageData.sender !== loggedUser._id) {
         updateChatListWithLatestMessage(messageData);
       }
     };
-
     const handleReceiveDocuments = (messageData: MessageData) => {
-      markMessageRead(selectedChat._id, loggedUser._id);
       saveMessageLocally(messageData);
     };
 
     const handleForwardMessageReceived = (newMessages: MessageData[]) => {
-      markMessageRead(selectedChat._id, loggedUser._id);
       console.log(newMessages, "forward messages");
       setMessages((prevMessages) => [...prevMessages, ...newMessages]);
     };
@@ -132,30 +136,35 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setLoadingMessages(false);
     }
   };
+
+  const fetchDataWhenLoad = async () => {
+    await loadMessages(chatId);
+    await markMessageRead(selectedChat._id, loggedUser._id);
+    await handleFetchAgain();
+  };
+
   useFocusEffect(
     useCallback(() => {
-      loadMessages(chatId);
-      markMessageRead(selectedChat._id, loggedUser._id);
+      fetchDataWhenLoad();
     }, [])
   );
+
   const saveMessageLocally = async (message: MessageData) => {
     try {
       const allMessages = await AsyncStorage.getItem("globalMessages");
       const messagesData = allMessages ? JSON.parse(allMessages) : [];
       const messageMap = new Map(
-        messagesData.map((msg) => [msg.messageId, msg])
+        messagesData.map((msg: any) => [msg.messageId, msg])
       );
       messageMap.set(message.messageId, {
         ...(messageMap.get(message.messageId) || {}),
         ...message,
       });
-
       const updatedMessages = Array.from(messageMap.values());
       await AsyncStorage.setItem(
         "globalMessages",
         JSON.stringify(updatedMessages)
       );
-
       setMessages((prevMessages) => {
         const messageMap = new Map(
           prevMessages.map((msg) => [msg.messageId, msg])
@@ -360,6 +369,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     const sender = loggedUser._id;
     const senderName = loggedUser ? loggedUser.name : "Unknown";
     const messageId = Date.now().toString();
+    setunread(false);
     await openDocumentPicker(
       setSending,
       setIsSending,
@@ -378,6 +388,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     const sender = loggedUser._id;
     const senderName = loggedUser ? loggedUser.name : "Unknown";
     const messageId = Date.now().toString();
+    setunread(false);
     await openCamera(
       setSending,
       setIsSending,
@@ -396,6 +407,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     if (!message) return;
     setReplyingMessage("");
     setMessage("");
+    setunread(false);
     const messageId = Date.now().toString();
     const newMessage = {
       chatId,
@@ -408,6 +420,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       replyingMessage,
       status: "unsent",
     };
+
     await updateChatListWithLatestMessage(newMessage);
     if (socket) {
       try {
@@ -501,7 +514,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
             return (
               <>
-                {isFirstUnread && (
+                {unread && isFirstUnread && (
                   <View style={{ marginVertical: 10, alignItems: "center" }}>
                     <View
                       style={{

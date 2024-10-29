@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     FetchChatsAgain();
-  }, [loggedUser, fetchAgain]);
+  }, [loggedUser]);
   // Fetch Chats end here
 
   return (
