@@ -4,12 +4,11 @@ import React, {
   useContext,
   ReactNode,
   useEffect,
-  useCallback,
 } from "react";
 import io, { Socket } from "socket.io-client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchChats } from "../misc/findChatsForUser/findChatsforuser";
-import debounce from "lodash/debounce";
+import { AppState } from "react-native";
 
 // Define a type for the context value
 interface User {
@@ -130,7 +129,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // add user to online and offline status
+  // useEffect(() => {
+  //   if (socket && loggedUser?._id) {
+  //     socket.emit("userOnline", loggedUser._id);
+  //     socket.on("getOnlineUsers", (res) => {
+  //       setOnlineUsers(res);
+  //     });
+  //     return () => {
+  //       socket.off("getOnlineUsers");
+  //     };
+  //   }
+  // }, [socket, loggedUser]);
+
   useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === "background" && socket && loggedUser?._id) {
+        socket.emit("userOffline", loggedUser._id); // Notify server user is offline
+      } else if (nextAppState === "active" && socket && loggedUser?._id) {
+        socket.emit("userOnline", loggedUser._id); // Notify server user is online
+      }
+    };
+    // Adding the event listener for app state changes
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
     if (socket && loggedUser?._id) {
       socket.emit("userOnline", loggedUser._id);
       socket.on("getOnlineUsers", (res) => {
@@ -138,11 +161,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return () => {
         socket.off("getOnlineUsers");
+        subscription.remove();
       };
     }
   }, [socket, loggedUser]);
-
-  // AsyncStorage.removeItem('chats')
   const FetchChatsAgain = () => {
     if (loggedUser) {
       fetchChats(setLoading, setChats, loggedUser);

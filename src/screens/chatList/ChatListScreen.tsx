@@ -77,6 +77,7 @@ const ChatListScreen: React.FC = () => {
   const [showType, setShowType] = useState<string>("Home");
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatsFromStorage, setChatsFromStorage] = useState<string | null>(null);
+  const { handleFetchAgain } = useUpdateChatList();
   // const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>(
   //   {}
   // );
@@ -234,7 +235,15 @@ const ChatListScreen: React.FC = () => {
     FetchChatsAgain();
     fetchchatforload();
   }, []);
-
+  const fetchDataWhenLoad = async () => {
+    await handleFetchAgain();
+  };
+  useFocusEffect(
+    useCallback(() => {
+      console.log("fetchall data 😁😁😁😁😁");
+      fetchDataWhenLoad();
+    }, [])
+  );
   // const countUnreadMessages = async () => {
   //   const chatUnreadCount = {};
   //   const messagesJson = await AsyncStorage.getItem("globalMessages");
@@ -297,12 +306,12 @@ const ChatListScreen: React.FC = () => {
                       const latestMessage = item.latestMessage?.message || "";
                       const messageLines = latestMessage.split("\n");
                       const firstLine = `${messageLines[0]}` || "";
-                      if (firstLine.length > 30) {
-                        return firstLine.slice(0, 30) + "...";
+                      if (firstLine.length > 20) {
+                        return firstLine.slice(0, 20) + "...";
                       }
                       const words = firstLine.split(" ");
-                      if (words.length > 30) {
-                        return words.slice(0, 30).join(" ") + "...";
+                      if (words.length > 20) {
+                        return words.slice(0, 20).join(" ") + "...";
                       }
                       return firstLine;
                     })()

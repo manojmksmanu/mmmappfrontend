@@ -54,14 +54,13 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
       const savedMessages = await AsyncStorage.getItem("globalMessages");
       if (savedMessages) {
         console.log("Using saved messages from AsyncStorage due to error.");
-        return JSON.parse(savedMessages); 
+        return JSON.parse(savedMessages);
       } else {
         console.log("No saved messages found.");
-        return []; 
+        return [];
       }
     }
   };
-
 
   return (
     <MessageContext.Provider

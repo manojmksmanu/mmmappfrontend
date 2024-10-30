@@ -8,7 +8,6 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "./userContext";
 import { useMessages } from "./messageContext";
-import { all } from "axios";
 
 interface ChatListUpdateInterface {
   handleFetchAgain: () => void;
@@ -36,11 +35,10 @@ export const ChatListUpdateProvider = ({
     {}
   );
   const handleFetchAgain = async () => {
+    console.log("handlefetchingagain");
     const allMessages = await fetchAllMessages();
-    const updatedUnreadCounts = await loadUnreadCounts(); // Get fresh counts
+    const updatedUnreadCounts = await loadUnreadCounts();
     await updateChatListWithLatestMessages(allMessages);
-
-    // Update AsyncStorage with the latest unread counts if there are changes
     try {
       await AsyncStorage.setItem(
         "unreadCounts",
@@ -61,6 +59,7 @@ export const ChatListUpdateProvider = ({
       return;
     }
     socket.on("fetchAgain", (data) => {
+        console.log(data,'data shfdhsdfhsdhf')
       const chatExists = chats.some((chat: any) => chat._id === data);
       if (chatExists) {
         handleFetchAgain();
@@ -70,7 +69,7 @@ export const ChatListUpdateProvider = ({
       socket.off("fetchAgain");
     };
   }, [socket, chats]);
-  // Step 1: Load initial unread counts from AsyncStorage
+
   useEffect(() => {
     const loadInitialUnreadCounts = async () => {
       try {
@@ -143,34 +142,12 @@ export const ChatListUpdateProvider = ({
     }
   };
 
-  //   const loadUnreadCounts = async () => {
-  //     const counts = await countUnreadMessages();
-  //     setUnreadCounts(counts);
-  //     return counts;
-  //   };
-
-  //   const countUnreadMessages = async () => {
-  //     const chatUnreadCount = new Map();
-  //     const messagesJson = await AsyncStorage.getItem("globalMessages");
-  //     const messages = messagesJson ? JSON.parse(messagesJson) : [];
-  //     const loggedUserId = loggedUser._id;
-  //     messages.forEach((message: any) => {
-  //       const { chatId, readBy } = message;
-  //       if (!readBy.includes(loggedUserId)) {
-  //         chatUnreadCount.set(chatId, (chatUnreadCount.get(chatId) || 0) + 1);
-  //       }
-  //     });
-  //     const result = Object.fromEntries(chatUnreadCount);
-  //     return result;
-  //   };
   return (
     <ChatListUpdateContext.Provider value={{ unreadCounts, handleFetchAgain }}>
       {children}
     </ChatListUpdateContext.Provider>
   );
 };
-
-// Custom hook to use the MessageContext
 export const useUpdateChatList = () => {
   const context = useContext(ChatListUpdateContext);
   if (context === undefined) {

@@ -18,17 +18,15 @@ import { markMessageRead } from "../../services/messageService";
 import { useAuth } from "../../context/userContext";
 import RenderMessage from "../../components/chatWindowScreenComp/RenderMessage";
 import { getSendedType, getSenderName, getSenderStatus } from "../../misc/misc";
-import { FlatList } from "react-native-gesture-handler";
 import {
   openCamera,
   openDocumentPicker,
 } from "../../misc/fireBaseUsedFunctions/FireBaseUsedFunctions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { FlatList as RNFlatList } from "react-native"; // Importing FlatList from react-native
 import { FlatList as GestureFlatList } from "react-native-gesture-handler";
 import { useUpdateChatList } from "src/context/updateChatListContext";
-import { useMessages } from "src/context/messageContext";
+
 interface User {
   _id: string;
   name: string;
@@ -41,6 +39,9 @@ interface MessageData {
   message: string;
   messageId: string;
   replyingMessage: any;
+  fileUrl: any;
+  fileType: any;
+  readBy: any;
 }
 const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -72,23 +73,37 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [isSending, setIsSending] = useState<boolean>(false);
   const flatListRef = useRef<GestureFlatList<any>>(null);
   const { handleFetchAgain } = useUpdateChatList();
-  const { fetchAllMessages } = useMessages();
   const [unread, setunread] = useState(true);
+  const [isConnected, setIsConnected] = useState(true);
+
   // ----socket connection--
   useEffect(() => {
     loadMessages(chatId);
     if (!socket) return;
     socket.emit("joinRoom", chatId);
     const handleReceiveMessage = (messageData: MessageData) => {
-      saveMessageLocally(messageData);
+      if (messageData.sender === loggedUser._id) {
+        saveMessageLocally(messageData);
+      }
       setunread(false);
-      // markMessageRead(selectedChat._id, loggedUser._id);
       if (messageData.sender !== loggedUser._id) {
+        saveRecieverMessageLocally(messageData);
+        const loggedUserId = loggedUser._id;
+        socket.emit("markmessagetoread", { ...messageData, loggedUserId });
         updateChatListWithLatestMessage(messageData);
       }
     };
     const handleReceiveDocuments = (messageData: MessageData) => {
-      saveMessageLocally(messageData);
+      console.log(messageData, "received message");
+      if (messageData.sender === loggedUser._id) {
+        saveMessageLocally(messageData);
+      }
+      setunread(false);
+      if (messageData.sender !== loggedUser._id) {
+        socket.emit("markmessagetoread", messageData);
+        saveRecieverMessageLocally(messageData);
+        updateChatListWithLatestMessage(messageData);
+      }
     };
 
     const handleForwardMessageReceived = (newMessages: MessageData[]) => {
@@ -96,14 +111,25 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setMessages((prevMessages) => [...prevMessages, ...newMessages]);
     };
 
+    const handleMarkMessageReceived = (messageData: MessageData) => {
+      if (messageData.sender === loggedUser._id) {
+        console.log(
+          messageData,
+          "sdfhsjkdfjkshdfjklsdjklfsljdfghjlsdgfjlshfdsdfgsdgfjsgd"
+        );
+        saveOurMessageMarkReadLocally(messageData);
+      }
+    };
     socket.on("receiveMessage", handleReceiveMessage);
     socket.on("receiveDocument", handleReceiveDocuments);
     socket.on("forwarMessageReceived", handleForwardMessageReceived);
+    socket.on("resultofmarkmessagetoread", handleMarkMessageReceived);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
       socket.off("receiveDocument", handleReceiveDocuments);
       socket.off("forwarMessageReceived", handleForwardMessageReceived);
+      socket.off("resultofmarkmessagetoread", handleMarkMessageReceived);
     };
   }, []);
   // --socket connection end--
@@ -145,6 +171,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   useFocusEffect(
     useCallback(() => {
+      console.log("fetchall data 😁😁😁😁😁");
       fetchDataWhenLoad();
     }, [])
   );
@@ -172,6 +199,129 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         messageMap.set(message.messageId, message);
         return Array.from(messageMap.values());
       });
+    } catch (error) {
+      console.error("Error saving message locally:", error);
+    }
+  };
+
+  const saveOurMessageMarkReadLocally = async (message: MessageData) => {
+    console.log(message, "😁😁😀😎😋😍🤗🙂🤗🤩😃");
+    const checkIncludeInMessageforStatus = () => {
+      if (
+        selectedChat.users.every((user) =>
+          message.readBy?.includes(user.user._id)
+        )
+      ) {
+        console.log("read");
+        return "read";
+      } else {
+        console.log("unread");
+        return "sent";
+      }
+    };
+
+    try {
+      const newMessage = {
+        __v: 1,
+        _id: message.messageId,
+        chatId: message.chatId,
+        createdAt: new Date().toISOString(),
+        fileType: message.fileType || "text",
+        fileUrl: message.fileUrl || null,
+        message: message.message,
+        messageId: message.messageId,
+        readBy: message.readBy,
+        replyingMessage: message.replyingMessage || "",
+        sender: message.sender,
+        senderName: message.senderName,
+        status: checkIncludeInMessageforStatus(),
+      };
+
+      const allMessages = await AsyncStorage.getItem("globalMessages");
+      const messagesData = allMessages ? JSON.parse(allMessages) : [];
+      const messageMap = new Map(
+        messagesData.map((msg: any) => [msg.messageId, msg])
+      );
+
+      // Update or add the newMessage to the map
+      messageMap.set(newMessage.messageId, {
+        ...(messageMap.get(newMessage.messageId) || {}), // Keep existing message properties if any
+        ...newMessage, // Overwrite with new message properties
+      });
+
+      // Convert the map back to an array and save it in AsyncStorage
+      const updatedMessages = Array.from(messageMap.values());
+      await AsyncStorage.setItem(
+        "globalMessages",
+        JSON.stringify(updatedMessages)
+      );
+
+      // Update the local `messages` state
+      setMessages((prevMessages) => {
+        const prevMessageMap = new Map(
+          prevMessages.map((msg) => [msg.messageId, msg])
+        );
+        // Update or add the newMessage in the state as well
+        prevMessageMap.set(newMessage.messageId, {
+          ...(prevMessageMap.get(newMessage.messageId) || {}),
+          ...newMessage,
+        });
+
+        // Return the updated array for the state
+        return Array.from(prevMessageMap.values());
+      });
+      console.log(messages[messages.length - 1], "messages messages");
+
+      // Call additional functions if necessary
+      await markMessageRead(selectedChat._id, loggedUser._id);
+      await handleFetchAgain();
+    } catch (error) {
+      console.error("Error saving message locally:", error);
+    }
+  };
+
+  const saveRecieverMessageLocally = async (message: MessageData) => {
+    console.log(message, "ksjdfksdfkls;kldfj;klsd;kshdfkhkh");
+
+    try {
+      const newMessage = {
+        __v: 1,
+        _id: message.messageId,
+        chatId: message.chatId,
+        createdAt: new Date().toISOString(),
+        fileType: message.fileType || "text",
+        fileUrl: message.fileUrl || null,
+        message: message.message,
+        messageId: message.messageId,
+        readBy: [...(message.readBy || []), loggedUser._id],
+        replyingMessage: message.replyingMessage || "",
+        sender: message.sender,
+        senderName: message.senderName,
+        status: "read", // Set status to "read"
+      };
+      const allMessages = await AsyncStorage.getItem("globalMessages");
+      const messagesData = allMessages ? JSON.parse(allMessages) : [];
+      const messageMap = new Map(
+        messagesData.map((msg: any) => [msg.messageId, msg])
+      );
+      messageMap.set(newMessage.messageId, {
+        ...(messageMap.get(newMessage.messageId) || {}),
+        ...newMessage,
+      });
+      const updatedMessages = Array.from(messageMap.values());
+      await AsyncStorage.setItem(
+        "globalMessages",
+        JSON.stringify(updatedMessages)
+      );
+      setMessages((prevMessages) => {
+        const messageMap = new Map(
+          prevMessages.map((msg) => [msg.messageId, msg])
+        );
+        messageMap.set(newMessage.messageId, newMessage);
+        return Array.from(messageMap.values());
+      });
+      await markMessageRead(selectedChat._id, loggedUser._id);
+      await handleFetchAgain();
     } catch (error) {
       console.error("Error saving message locally:", error);
     }
@@ -458,27 +608,9 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   };
 
   const firstUnreadIndex = memoizedMessages.findIndex(
-    (msg) => msg.status === "sent" && msg.sender !== loggedUser._id
+    (msg) =>
+      !msg.readBy?.includes(loggedUser._id) && msg.sender !== loggedUser._id
   );
-  // const ITEM_HEIGHT = 60;
-  useEffect(() => {
-    if (
-      firstUnreadIndex !== null &&
-      firstUnreadIndex >= 0 &&
-      flatListRef.current
-    ) {
-      const indexToScroll = memoizedMessages.length - 1 - firstUnreadIndex; // Adjust for inverted list
-
-      // Ensure the index is within bounds
-      if (indexToScroll >= 0 && indexToScroll < memoizedMessages.length) {
-        flatListRef.current.scrollToIndex({
-          index: indexToScroll,
-          animated: true,
-          viewPosition: 0.5, // Center the unread message in the view
-        });
-      }
-    }
-  }, [firstUnreadIndex, memoizedMessages]); // Depend on memoizedMessages
 
   return (
     <View style={styles.container}>
@@ -490,20 +622,10 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         />
       ) : (
         <GestureFlatList
-          // ref={flatListRef}
           data={memoizedMessages.slice().reverse()}
           inverted
           keyExtractor={(item) => item.messageId}
           style={{ padding: 10 }}
-          // getItemLayout={(data, index) => ({
-          //   length: ITEM_HEIGHT,
-          //   offset: ITEM_HEIGHT * index,
-          //   index,
-          // })}
-          // onScrollToIndexFailed={(info) => {
-          //   console.warn("Scroll to index failed", info);
-          //   // Optionally, handle fallback here
-          // }}
           renderItem={({ item, index }) => {
             const isSelected = selectedMessages?.some(
               (msg) => msg.messageId === item.messageId

@@ -238,7 +238,10 @@ const RenderMessage = ({
     }
 
     // -----pdf message----
-    if (fileType === "application/pdf" || fileType?.startsWith("application/")) {
+    if (
+      fileType === "application/pdf" ||
+      fileType?.startsWith("application/")
+    ) {
       return (
         <TouchableOpacity onPress={() => openFileModal(fileUrl, fileType)}>
           <View
@@ -394,7 +397,6 @@ const RenderMessage = ({
     setSelectedFileUrl(null);
     setSelectedFileType(null);
   };
-
   return (
     <>
       <PanGestureHandler
