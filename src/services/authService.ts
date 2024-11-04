@@ -8,7 +8,7 @@ interface User {
 }
 
 const API_URL = "https://mmmappbackend.onrender.com";
-// const API_URL = 'http://10.0.2.2:5000';
+// const API_URL = "http://10.0.2.2:5000";
 
 export const signup = async (
   name: string,
@@ -19,7 +19,7 @@ export const signup = async (
   phoneCountry: any,
   whatsappNumber: string,
   whatsappCountry: any,
-  selectedSubjects?: string[] 
+  selectedSubjects?: string[]
 ): Promise<void> => {
   try {
     const data: any = {
@@ -33,7 +33,7 @@ export const signup = async (
       whatsappCountry: whatsappCountry._id,
     };
     if (userType === "Tutor") {
-      data.subjects = selectedSubjects; 
+      data.subjects = selectedSubjects;
     }
     const response = await axios.post(`${API_URL}/api/auth/signup`, data);
     return response.data.message;
@@ -89,19 +89,17 @@ export const getUsers = async (): Promise<any> => {
 
 export const loggeduser = async (): Promise<User | null> => {
   const token = await AsyncStorage.getItem("token");
-  console.log(token, "on loggeduser");
   try {
     const response = await axios.get(`${API_URL}/api/auth/loggedUser`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    console.log(response.data, "data");
     return response.data;
   } catch (error: any) {
     console.error(
       "Login failed:",
       error.response ? error.response.data : error.message
     );
-    throw error; 
+    throw error;
   }
 };
 
@@ -149,7 +147,6 @@ export const deleteUser = async (
   email: string,
   password: string
 ): Promise<void> => {
-  console.log(email, password, "inside delete");
   const token = await AsyncStorage.getItem("token");
   console.log(token);
   try {
@@ -168,5 +165,38 @@ export const deleteUser = async (
   } catch (error: any) {
     console.error(error.response ? error.response.data : error.message);
     throw error.response ? error.response.data : error.message;
+  }
+};
+export const updateExpoPushToken = async (user, expoToken) => {
+  console.log("inside update expo ", user?._id);
+  const token = await AsyncStorage.getItem("token");
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/auth/updatePushToken`,
+      {
+        userId: user._id,
+        expoPushToken: expoToken,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    console.log("Response received:", response.data);
+
+    return response.data; // Return the response data if needed
+  } catch (error: any) {
+    if (error.response) {
+      // The request was made, and the server responded with a status code
+      console.error("Error response data:", error.response.data);
+      console.error("Error response status:", error.response.status);
+      console.error("Error response headers:", error.response.headers);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error("Error request data:", error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("Error message:", error.message);
+    }
+    throw error; // Rethrow the error if you want to handle it further up the call chain
   }
 };

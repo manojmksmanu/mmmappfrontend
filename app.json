@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "mmmappfronted",
-    "slug": "mmmappfronted",
+    "slug": "mmmapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,13 +12,18 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "notifications": {
+      "icon": "./assets/notificaition.png",
+      "color": "#000000",
+      "ios": {
+        "bundleIdentifier": "com.yourcompany.yourapp"
+      }
+    },
     "plugins": [
       "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
       "@react-native-firebase/app",
-      "expo-build-properties",
       "expo-notifications",
-
       [
         "expo-build-properties",
         {
@@ -33,7 +38,10 @@
         }
       ]
     ],
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
       "supportsTablet": true,
       "buildNumber": "1.0.0",
@@ -42,7 +50,10 @@
         "NSCameraUsageDescription": "This app requires access to your camera.",
         "NSDocumentDirectoryUsageDescription": "This app requires access to your documents.",
         "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library.",
-        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ]
       },
       "googleServicesFile": "./GoogleService-Info.plist"
     },
@@ -55,8 +66,14 @@
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "NOTIFICATIONS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
+        "android.permission.ACCESS_NETWORK_STATE"
       ],
+      "jsEngine": "jsc",
       "package": "com.mymegaminds.myapp",
       "versionCode": 6
     },
@@ -65,8 +82,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "8321dc17-9024-42d4-938f-4fcee99d2911"
+        "projectId": "d6d1e33d-8b52-43f3-94cc-5a18df26f5cb"
       }
-    }
+    },
+    "owner": "manojku"
   }
 }

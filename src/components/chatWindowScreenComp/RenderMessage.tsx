@@ -52,7 +52,6 @@ const RenderMessage = ({
   const { selectedChat } = useAuth() as {
     selectedChat: any;
   };
-
   const onGestureEvent = (event: PanGestureHandlerGestureEvent) => {
     if (isSender) {
       translateX.value = Math.min(event.nativeEvent.translationX, 0);

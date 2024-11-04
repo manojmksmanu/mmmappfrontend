@@ -13,6 +13,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import { markMessageRead } from "../../services/messageService";
 import { useAuth } from "../../context/userContext";
@@ -54,7 +55,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [isReplying, setIsReplying] = useState<boolean>(false);
   const textInputRef = useRef<TextInput>(null);
-
+  const scaleAnim = useRef(new Animated.Value(0)).current;
   const { loggedUser, selectedChat, socket, onlineUsers, setChats, chats } =
     useAuth() as {
       loggedUserId: string;
@@ -71,10 +72,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [sending, setSending] = useState<any[]>([]);
   const [sendingPercentage, setSendingPercentage] = useState<string>("");
   const [isSending, setIsSending] = useState<boolean>(false);
-  const flatListRef = useRef<GestureFlatList<any>>(null);
   const { handleFetchAgain } = useUpdateChatList();
   const [unread, setunread] = useState(true);
-  const [isConnected, setIsConnected] = useState(true);
 
   // ----socket connection--
   useEffect(() => {
@@ -82,6 +81,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     if (!socket) return;
     socket.emit("joinRoom", chatId);
     const handleReceiveMessage = (messageData: MessageData) => {
+      console.log("message revcieved from socket");
       if (messageData.sender === loggedUser._id) {
         saveMessageLocally(messageData);
       }
@@ -94,7 +94,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       }
     };
     const handleReceiveDocuments = (messageData: MessageData) => {
-      console.log(messageData, "received message");
       if (messageData.sender === loggedUser._id) {
         saveMessageLocally(messageData);
       }
@@ -113,10 +112,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
     const handleMarkMessageReceived = (messageData: MessageData) => {
       if (messageData.sender === loggedUser._id) {
-        console.log(
-          messageData,
-          "sdfhsjkdfjkshdfjklsdjklfsljdfghjlsdgfjlshfdsdfgsdgfjsgd"
-        );
         saveOurMessageMarkReadLocally(messageData);
       }
     };
@@ -145,7 +140,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         : msg;
     });
   }, [messages]);
-
   const loadMessages = async (chatId: any) => {
     setLoadingMessages(true);
     try {
@@ -162,20 +156,16 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setLoadingMessages(false);
     }
   };
-
   const fetchDataWhenLoad = async () => {
     await loadMessages(chatId);
     await markMessageRead(selectedChat._id, loggedUser._id);
     await handleFetchAgain();
   };
-
   useFocusEffect(
     useCallback(() => {
-      console.log("fetchall data 😁😁😁😁😁");
       fetchDataWhenLoad();
     }, [])
   );
-
   const saveMessageLocally = async (message: MessageData) => {
     try {
       const allMessages = await AsyncStorage.getItem("globalMessages");
@@ -203,19 +193,15 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Error saving message locally:", error);
     }
   };
-
   const saveOurMessageMarkReadLocally = async (message: MessageData) => {
-    console.log(message, "😁😁😀😎😋😍🤗🙂🤗🤩😃");
     const checkIncludeInMessageforStatus = () => {
       if (
         selectedChat.users.every((user) =>
           message.readBy?.includes(user.user._id)
         )
       ) {
-        console.log("read");
         return "read";
       } else {
-        console.log("unread");
         return "sent";
       }
     };
@@ -270,7 +256,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         // Return the updated array for the state
         return Array.from(prevMessageMap.values());
       });
-      console.log(messages[messages.length - 1], "messages messages");
 
       // Call additional functions if necessary
       await markMessageRead(selectedChat._id, loggedUser._id);
@@ -279,10 +264,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Error saving message locally:", error);
     }
   };
-
   const saveRecieverMessageLocally = async (message: MessageData) => {
-    console.log(message, "ksjdfksdfkls;kldfj;klsd;kshdfkhkh");
-
     try {
       const newMessage = {
         __v: 1,
@@ -326,7 +308,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Error saving message locally:", error);
     }
   };
-
   const checkAndSaveMessageLocally = async (message: MessageData) => {
     try {
       const allMessages = await AsyncStorage.getItem("globalMessages");
@@ -357,7 +338,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       console.error("Error checking and saving message locally:", error);
     }
   };
-
   const getUserFirstAlphabet = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
   };
@@ -651,6 +631,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
                     </Text>
                   </View>
                 )}
+
                 <TouchableOpacity
                   onLongPress={() => handleLongPress(item)}
                   onPress={() => handleTap(item)}

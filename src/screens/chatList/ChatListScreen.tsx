@@ -1,4 +1,9 @@
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useCallback,
+  useState,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -8,6 +13,7 @@ import {
   ActivityIndicator,
   Image,
   SafeAreaView,
+  Animated,
 } from "react-native";
 import { useAuth } from "../../context/userContext";
 import {
@@ -24,7 +30,6 @@ import { TextInput } from "react-native-gesture-handler";
 import BottomNavigation from "../../components/chatListScreenComp/BottomNavigation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatMessageDate } from "src/misc/formateMessageDate/formateMessageDate";
-import { getAllMessages } from "src/services/messageService";
 import { useMessages } from "src/context/messageContext";
 import { useUpdateChatList } from "src/context/updateChatListContext";
 
@@ -84,7 +89,16 @@ const ChatListScreen: React.FC = () => {
   const { unreadCounts } = useUpdateChatList();
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
-
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    // Start the animation when the component mounts
+    scaleAnim.setValue(0); // Reset scale to 0 before starting the animation
+    Animated.spring(scaleAnim, {
+      toValue: 1, // Scale to 100%
+      friction: 9,
+      useNativeDriver: true, // Use native driver for performance
+    }).start();
+  }, []);
   // -----filter chats by sender name ---
   useEffect(() => {
     setShowType("Home");
@@ -244,201 +258,213 @@ const ChatListScreen: React.FC = () => {
       fetchDataWhenLoad();
     }, [])
   );
-  // const countUnreadMessages = async () => {
-  //   const chatUnreadCount = {};
-  //   const messagesJson = await AsyncStorage.getItem("globalMessages");
-  //   const messages = messagesJson ? JSON.parse(messagesJson) : [];
-  //   messages.forEach((message: any) => {
-  //     const { chatId, readBy } = message;
-  //     if (!readBy.includes(loggedUser._id)) {
-  //       if (!chatUnreadCount[chatId]) {
-  //         chatUnreadCount[chatId] = 0;
-  //       }
-  //       chatUnreadCount[chatId] += 1;
-  //     }
-  //   });
-  //   return chatUnreadCount;
-  // };
+
   const renderItem = ({ item }: { item: any }) =>
     item.chatType === "one-to-one" ? (
       <TouchableOpacity
         onPress={() => chatClicked(item)}
         style={styles.userContainer}
       >
-        <View style={styles.profileCircle}>
-          {loggedUser ? (
-            <Text style={styles.profileText}>
-              {getUserFirstLetter(getSenderName(loggedUser, item.users))}
-            </Text>
-          ) : null}
-          <View style={styles.statusContainer}>
-            {loggedUser &&
-            getSenderStatus(loggedUser, item.users, onlineUsers || []) ===
-              "online" ? (
-              <View style={styles.statusDotgreen}></View>
-            ) : (
-              <View style={styles.statusDotgrey}></View>
-            )}
-          </View>
-        </View>
-        <View style={styles.userInfo}>
-          <View style={styles.userHeader}>
-            <Text style={styles.username}>
-              {loggedUser ? getSenderName(loggedUser, item.users) : "Unknown"}
-            </Text>
+        <Animated.View
+          style={{
+            transform: [{ scale: scaleAnim }],
+            backgroundColor: "white",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+            borderRadius: 10,
+            marginBottom: 2,
+          }}
+        >
+          <View style={styles.profileCircle}>
             {loggedUser ? (
-              <Text style={styles.userTypeText}>
-                {getSendedType(loggedUser, item.users)}
+              <Text style={styles.profileText}>
+                {getUserFirstLetter(getSenderName(loggedUser, item.users))}
               </Text>
             ) : null}
+            <View style={styles.statusContainer}>
+              {loggedUser &&
+              getSenderStatus(loggedUser, item.users, onlineUsers || []) ===
+                "online" ? (
+                <View style={styles.statusDotgreen}></View>
+              ) : (
+                <View style={styles.statusDotgrey}></View>
+              )}
+            </View>
           </View>
-          {loggedUser && item.latestMessage ? (
+          <View style={styles.userInfo}>
             <View style={styles.userHeader}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
-                  marginBottom: 4,
-                }}
-              >
-                {loggedUser
-                  ? (() => {
-                      const latestMessage = item.latestMessage?.message || "";
-                      const messageLines = latestMessage.split("\n");
-                      const firstLine = `${messageLines[0]}` || "";
-                      if (firstLine.length > 20) {
-                        return firstLine.slice(0, 20) + "...";
-                      }
-                      const words = firstLine.split(" ");
-                      if (words.length > 20) {
-                        return words.slice(0, 20).join(" ") + "...";
-                      }
-                      return firstLine;
-                    })()
-                  : ""}
+              <Text style={styles.username}>
+                {loggedUser ? getSenderName(loggedUser, item.users) : "Unknown"}
               </Text>
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 10,
-                  alignItems: "center",
-                }}
-              >
-                {unreadCounts[item._id] && (
-                  <Text
-                    style={{
-                      color: "white",
-                      fontWeight: "700",
-                      backgroundColor: "#187afa",
-                      borderRadius: 50, // Border radius should be half of width/height to make a circle
-                      width: 22, // Set desired circle diameter
-                      height: 22,
-                      textAlign: "center",
-                      lineHeight: 22, // Match lineHeight to height to vertically center text
-                      fontSize: 12, // Adjust font size as needed
-                    }}
-                  >
-                    {unreadCounts[item._id]}
-                  </Text>
-                )}
+              {loggedUser ? (
+                <Text style={styles.userTypeText}>
+                  {getSendedType(loggedUser, item.users)}
+                </Text>
+              ) : null}
+            </View>
+            {loggedUser && item.latestMessage ? (
+              <View style={styles.userHeader}>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                    marginBottom: 4,
                   }}
                 >
-                  {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
-                  {loggedUser && formatMessageDate(item?.updatedAt)}
+                  {loggedUser
+                    ? (() => {
+                        const latestMessage = item.latestMessage?.message || "";
+                        const messageLines = latestMessage.split("\n");
+                        const firstLine = `${messageLines[0]}` || "";
+                        if (firstLine.length > 20) {
+                          return firstLine.slice(0, 20) + "...";
+                        }
+                        const words = firstLine.split(" ");
+                        if (words.length > 20) {
+                          return words.slice(0, 20).join(" ") + "...";
+                        }
+                        return firstLine;
+                      })()
+                    : ""}
                 </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  {unreadCounts[item._id] && (
+                    <Text
+                      style={{
+                        color: "white",
+                        fontWeight: "700",
+                        backgroundColor: "#187afa",
+                        borderRadius: 50, // Border radius should be half of width/height to make a circle
+                        width: 22, // Set desired circle diameter
+                        height: 22,
+                        textAlign: "center",
+                        lineHeight: 22, // Match lineHeight to height to vertically center text
+                        fontSize: 12, // Adjust font size as needed
+                      }}
+                    >
+                      {unreadCounts[item._id]}
+                    </Text>
+                  )}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                    }}
+                  >
+                    {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
+                    {loggedUser && formatMessageDate(item?.updatedAt)}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ) : (
-            ""
-          )}
-        </View>
+            ) : (
+              ""
+            )}
+          </View>
+        </Animated.View>
       </TouchableOpacity>
     ) : (
       <TouchableOpacity
         onPress={() => chatClicked(item)}
         style={styles.userContainer}
       >
-        <View style={styles.profileCircle}>
-          {loggedUser ? (
-            <Text style={styles.profileText}>
-              {getUserFirstLetter(item.groupName)}
-            </Text>
-          ) : null}
-        </View>
-        <View style={styles.userInfo}>
-          <View style={styles.userHeader}>
-            <Text style={styles.username}>{item.groupName}</Text>
-          </View>
-          {loggedUser && item.latestMessage ? (
-            <View style={styles.userHeader}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
-                  marginBottom: 4,
-                }}
-              >
-                {loggedUser
-                  ? (() => {
-                      const latestMessage = item.latestMessage?.message || "";
-                      const messageLines = latestMessage.split("\n");
-                      const firstLine = `${messageLines[0]}` || "";
-                      if (firstLine.length > 30) {
-                        return firstLine.slice(0, 30) + "...";
-                      }
-                      const words = firstLine.split(" ");
-                      if (words.length > 30) {
-                        return words.slice(0, 30).join(" ") + "...";
-                      }
-                      return firstLine;
-                    })()
-                  : ""}
+        <Animated.View
+          style={{
+            transform: [{ scale: scaleAnim }],
+            backgroundColor: "white",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+            borderRadius: 10,
+            marginBottom: 1,
+          }}
+        >
+          <View style={styles.profileCircle}>
+            {loggedUser ? (
+              <Text style={styles.profileText}>
+                {getUserFirstLetter(item.groupName)}
               </Text>
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 10,
-                  alignItems: "center",
-                }}
-              >
-                {unreadCounts[item._id] && (
-                  <Text
-                    style={{
-                      color: "white",
-                      fontWeight: "700",
-                      backgroundColor: "#187afa",
-                      borderRadius: 50, // Border radius should be half of width/height to make a circle
-                      width: 22, // Set desired circle diameter
-                      height: 22,
-                      textAlign: "center",
-                      lineHeight: 22, // Match lineHeight to height to vertically center text
-                      fontSize: 12, // Adjust font size as needed
-                    }}
-                  >
-                    {unreadCounts[item._id]}
-                  </Text>
-                )}
+            ) : null}
+          </View>
+          <View style={styles.userInfo}>
+            <View style={styles.userHeader}>
+              <Text style={styles.username}>{item.groupName}</Text>
+            </View>
+            {loggedUser && item.latestMessage ? (
+              <View style={styles.userHeader}>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                    marginBottom: 4,
                   }}
                 >
-                  {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
-                  {loggedUser && formatMessageDate(item?.updatedAt)}
+                  {loggedUser
+                    ? (() => {
+                        const latestMessage = item.latestMessage?.message || "";
+                        const messageLines = latestMessage.split("\n");
+                        const firstLine = `${messageLines[0]}` || "";
+                        if (firstLine.length > 30) {
+                          return firstLine.slice(0, 30) + "...";
+                        }
+                        const words = firstLine.split(" ");
+                        if (words.length > 30) {
+                          return words.slice(0, 30).join(" ") + "...";
+                        }
+                        return firstLine;
+                      })()
+                    : ""}
                 </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  {unreadCounts[item._id] && (
+                    <Text
+                      style={{
+                        color: "white",
+                        fontWeight: "700",
+                        backgroundColor: "#187afa",
+                        borderRadius: 50, // Border radius should be half of width/height to make a circle
+                        width: 22, // Set desired circle diameter
+                        height: 22,
+                        textAlign: "center",
+                        lineHeight: 22, // Match lineHeight to height to vertically center text
+                        fontSize: 12, // Adjust font size as needed
+                      }}
+                    >
+                      {unreadCounts[item._id]}
+                    </Text>
+                  )}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: `${unreadCounts[item._id] ? "#187afa" : "#999"}`,
+                    }}
+                  >
+                    {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
+                    {loggedUser && formatMessageDate(item?.updatedAt)}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ) : (
-            ""
-          )}
-        </View>
+            ) : (
+              ""
+            )}
+          </View>
+        </Animated.View>
       </TouchableOpacity>
     );
   return (
@@ -553,7 +579,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 5,
     paddingVertical: 10,
-    backgroundColor: "white",
+    backgroundColor: "rgba(0, 0, 0, 0)",
   },
   background: {
     flex: 1,
@@ -562,12 +588,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "white",
     borderRadius: 8,
     paddingVertical: 8,
-    paddingHorizontal: 30,
+    paddingHorizontal:30,
     marginVertical: 10,
-    margin: 15,
+    marginHorizontal:10
+    // margin: 15,
   },
   content: {
     height: "90%",
@@ -602,8 +629,8 @@ const styles = StyleSheet.create({
   userContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    marginBottom:5,
+    marginHorizontal:10
   },
   profileCircle: {
     width: 48,
@@ -662,7 +689,7 @@ const styles = StyleSheet.create({
     left: -6,
   },
   statusDotgreen: {
-    opacity: 0.5,
+    opacity: 0.8,
     backgroundColor: "#25D366",
     width: 10,
     height: 10,
@@ -672,7 +699,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   statusDotgrey: {
-    opacity: 0.5,
+    opacity: 0.8,
     backgroundColor: "grey",
     width: 10,
     height: 10,
