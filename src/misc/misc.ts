@@ -18,7 +18,7 @@ export const getSender = (loggedUser: any, users: any[]) => {
     });
     return sender ? sender : "Unknown Sender";
   }
-  return "Unknown Sender";
+  return "Unknown Sender r";
 };
 
 export const getSenderName = (loggedUser: User, chatUsers: any[]) => {
