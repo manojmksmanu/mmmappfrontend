@@ -11,12 +11,15 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/userContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { TextInput } from "react-native-gesture-handler";
-import { deleteUser } from "../../services/authService";
+import { deleteUser } from "../../services/api/authService";
 import { isValidEmail } from "../../misc/misc";
 import { showMessage } from "react-native-flash-message";
+import { useAuthStore } from "src/services/storage/authStore";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Entypo from "@expo/vector-icons/Entypo";
 
 type RootStackParamList = {
   ChatList: undefined;
@@ -30,7 +33,8 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const { loggedUser, socket, setLoggedUser } = useAuth();
+  const { loggedUser, token } = useAuthStore();
+  const { colors } = useTheme();
 
   const deleteUserAccount = async () => {
     try {
@@ -40,8 +44,7 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       await AsyncStorage.removeItem("userInfo");
       await AsyncStorage.removeItem("chats");
       await AsyncStorage.removeItem("token");
-      socket?.emit("logout", loggedUser?._id);
-      setLoggedUser(null);
+      // socket?.emit("logout", loggedUser?._id);
       setLoading(false);
       showMessage({
         message: "Success", // Title for the success message
@@ -53,57 +56,36 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       navigationToLogin.navigate("Login");
     } catch (err) {
       setLoading(false);
-     showMessage({
-       message: "Success", // Title for the message
-       description: "Some error occurred. Try again later...", // Detailed message (equivalent to text2)
-       type: "success", // Success message type (you might want to use 'danger' for an error)
-       autoHide: true, // Default behavior is auto-hide
-       duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
-     });
+      showMessage({
+        message: "Success", // Title for the message
+        description: "Some error occurred. Try again later...", // Detailed message (equivalent to text2)
+        type: "success", // Success message type (you might want to use 'danger' for an error)
+        autoHide: true, // Default behavior is auto-hide
+        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+      });
       console.log(err);
     }
   };
 
-  useEffect(() => {
-    navigation.setOptions({
-    //   headerLeft: () => (
-    //     <TouchableOpacity
-    //       onPress={() => navigation.goBack()}
-    //       style={styles.backButton}
-    //     >
-    //       <Image
-    //         source={require("../../../assets/back.png")} // Your custom back icon image
-    //         style={styles.backIcon}
-    //       />
-    //     </TouchableOpacity>
-    //   ),
-      headerTitle: () => (
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Delete Account</Text>
-        </View>
-      ),
-      headerRight: () => <View></View>,
-    });
-  }, [navigation]);
   const handleDeleteButton = () => {
     if (!email || !isValidEmail(email)) {
-     showMessage({
-       message: "Error", // Title for the error message
-       description: "Please enter a valid email", // Detailed message (equivalent to text2)
-       type: "danger", // 'danger' for error messages
-       autoHide: true, // Default behavior is auto-hide
-       duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
-     });;
+      showMessage({
+        message: "Error", // Title for the error message
+        description: "Please enter a valid email", // Detailed message (equivalent to text2)
+        type: "danger", // 'danger' for error messages
+        autoHide: true, // Default behavior is auto-hide
+        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+      });
       return;
     }
     if (!password) {
-    showMessage({
-      message: "Error", // Title for the error message
-      description: "Please enter a password", // Detailed message (equivalent to text2)
-      type: "danger", // 'danger' for error messages
-      autoHide: true, // Default behavior is auto-hide
-      duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
-    });
+      showMessage({
+        message: "Error", // Title for the error message
+        description: "Please enter a password", // Detailed message (equivalent to text2)
+        type: "danger", // 'danger' for error messages
+        autoHide: true, // Default behavior is auto-hide
+        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+      });
       return;
     }
     Alert.alert(
@@ -119,6 +101,36 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <View
+        style={[
+          {
+            paddingTop: 40,
+            paddingHorizontal: 30,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingBottom: 20,
+            borderBottomEndRadius: 30,
+            borderBottomStartRadius: 30,
+            gap: 20,
+            marginBottom: 20,
+          },
+          { backgroundColor: colors.primary },
+        ]}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-outline" size={34} color={colors.text} />
+        </TouchableOpacity>
+        <Text
+          style={[
+            { color: colors.text },
+            { fontSize: 20 },
+            { fontWeight: "bold" },
+          ]}
+        >
+          Delete Account
+        </Text>
+      </View>
       {loading ? (
         <ActivityIndicator
           size="large"
@@ -126,39 +138,37 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           style={styles.loadingIndicator}
         />
       ) : (
-        <View>
-          <Text style={{ marginBottom: 20 }}>
+        <View style={{ paddingHorizontal: 30 }}>
+          <Text style={{ marginBottom: 20, color: colors.text, opacity: 0.7 }}>
             This Action will permanently delete your account, messages and chats
           </Text>
 
           {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Image
-              style={{ width: 20, height: 20 }}
-              source={require("../../../assets/mail.png")}
-            />
+          <View
+            style={[styles.inputContainer, { backgroundColor: colors.primary }]}
+          >
+            <Ionicons name="mail" size={24} color={colors.text} />
             <TextInput
               placeholder="Email"
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.text}
               value={email}
               onChangeText={setEmail}
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               editable={!loading}
             />
           </View>
           {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Image
-              style={{ width: 20, height: 20 }}
-              source={require("../../../assets/padlock.png")}
-            />
+          <View
+            style={[styles.inputContainer, { backgroundColor: colors.primary }]}
+          >
+            <Entypo name="lock-open" size={24} color={colors.text} />
             <TextInput
               placeholder="Password"
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.text}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               editable={!loading}
             />
           </View>
@@ -173,10 +183,7 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: 'red',
     flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 40,
   },
   backButton: {
     marginLeft: 10,
@@ -200,8 +207,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
     marginBottom: 20,
+    paddingLeft: 20,
+    borderRadius: 20,
   },
   input: {
     flex: 1,

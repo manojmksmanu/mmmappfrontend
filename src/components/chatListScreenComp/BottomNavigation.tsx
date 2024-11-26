@@ -1,13 +1,18 @@
 import React, { useState } from "react";
 import { View, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
 import { useAuth } from "../../context/userContext";
-
+import { useTheme } from "@react-navigation/native";
+import Octicons from "@expo/vector-icons/Octicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useAuthStore } from "src/services/storage/authStore";
 interface BottomNavigationProps {
   setShowType: any;
   handleShowUsertype: any;
   showType: string;
 }
-
 const BottomNavigation: React.FC<BottomNavigationProps> = ({
   setShowType,
   showType,
@@ -17,9 +22,12 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
     await setShowType(item);
     await handleShowUsertype(item);
   };
-  const { loggedUser } = useAuth();
+  const {loggedUser} = useAuthStore()
+  const { colors } = useTheme();
   return (
-    <View style={styles.bottomNavigation}>
+    <View
+      style={[styles.bottomNavigation, { backgroundColor: colors.secondary }]}
+    >
       <TouchableOpacity
         style={[
           styles.navButton,
@@ -27,14 +35,24 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
         ]}
         onPress={() => handleButtonPress("Home")}
       >
-        <Image
-          source={require("../../../assets/all.png")}
-          style={{ width: 25, height: 25 }}
+        <Octicons
+          name="home"
+          size={24}
+          color={
+            showType === "Home"
+              ? colors.bottomNavActivePage
+              : colors.bottomNavPage
+          }
         />
         <Text
           style={[
             styles.label,
-            { color: showType === "Home" ? "#007bff" : "#888" },
+            {
+              color:
+                showType === "Home"
+                  ? colors.bottomNavActivePage
+                  : colors.bottomNavPage,
+            },
           ]}
         >
           Home
@@ -47,20 +65,29 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
         ]}
         onPress={() => handleButtonPress("Admins")}
       >
-        <Image
-          source={require("../../../assets/software-engineer.png")}
-          style={{ width: 25, height: 25 }}
+        <MaterialIcons
+          name="admin-panel-settings"
+          size={24}
+          color={
+            showType === "Admins"
+              ? colors.bottomNavActivePage
+              : colors.bottomNavPage
+          }
         />
         <Text
           style={[
             styles.label,
-            { color: showType === "Admins" ? "#007bff" : "#888" },
+            {
+              color:
+                showType === "Admins"
+                  ? colors.bottomNavActivePage
+                  : colors.bottomNavPage,
+            },
           ]}
         >
           Admins
         </Text>
       </TouchableOpacity>
-
       {(loggedUser?.userType === "Super-Admin" ||
         loggedUser?.userType === "Admin" ||
         loggedUser?.userType === "Co-Admin") && (
@@ -71,21 +98,30 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
           ]}
           onPress={() => handleButtonPress("Tutor")}
         >
-          <Image
-            source={require("../../../assets/tutor.png")}
-            style={{ width: 25, height: 25 }}
+          <FontAwesome6
+            name="person-chalkboard"
+            size={24}
+            color={
+              showType === "Tutor"
+                ? colors.bottomNavActivePage
+                : colors.bottomNavPage
+            }
           />
           <Text
             style={[
               styles.label,
-              { color: showType === "Tutor" ? "#007bff" : "#888" },
+              {
+                color:
+                  showType === "Tutor"
+                    ? colors.bottomNavActivePage
+                    : colors.bottomNavPage,
+              },
             ]}
           >
             Tutor
           </Text>
         </TouchableOpacity>
       )}
-
       {(loggedUser?.userType === "Super-Admin" ||
         loggedUser?.userType === "Admin" ||
         loggedUser?.userType === "Sub-Admin") && (
@@ -96,21 +132,30 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
           ]}
           onPress={() => handleButtonPress("Student")}
         >
-          <Image
-            source={require("../../../assets/students.png")}
-            style={{ width: 25, height: 25 }}
+          <Ionicons
+            name="person"
+            size={24}
+            color={
+              showType === "Student"
+                ? colors.bottomNavActivePage
+                : colors.bottomNavPage
+            }
           />
           <Text
             style={[
               styles.label,
-              { color: showType === "Student" ? "#007bff" : "#888" },
+              {
+                color:
+                  showType === "Student"
+                    ? colors.bottomNavActivePage
+                    : colors.bottomNavPage,
+              },
             ]}
           >
             Student
           </Text>
         </TouchableOpacity>
       )}
-
       <TouchableOpacity
         style={[
           styles.navButton,
@@ -118,14 +163,24 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
         ]}
         onPress={() => handleButtonPress("Group")}
       >
-        <Image
-          source={require("../../../assets/meeting.png")}
-          style={{ width: 25, height: 25 }}
+        <FontAwesome
+          name="group"
+          size={24}
+          color={
+            showType === "Group"
+              ? colors.bottomNavActivePage
+              : colors.bottomNavPage
+          }
         />
         <Text
           style={[
             styles.label,
-            { color: showType === "Group" ? "#007bff" : "#888" },
+            {
+              color:
+                showType === "Group"
+                  ? colors.bottomNavActivePage
+                  : colors.bottomNavPage,
+            },
           ]}
         >
           Group
@@ -139,20 +194,15 @@ const styles = StyleSheet.create({
   bottomNavigation: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "#f0f0f0",
     paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderTopEndRadius: 30,
+    borderTopStartRadius: 30,
   },
   navButton: {
     alignItems: "center",
   },
   activeButton: {
-    borderBottomWidth: 2,
+    // borderBottomWidth: 2,
     borderBottomColor: "#187afa",
   },
   label: {

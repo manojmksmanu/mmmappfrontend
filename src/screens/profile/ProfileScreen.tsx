@@ -7,11 +7,14 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  ImageBackground,
+  SafeAreaView,
 } from "react-native";
-import { useAuth } from "../../context/userContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { useAuthStore } from "src/services/storage/authStore";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 type RootStackParamList = {
   ChatList: undefined;
   ChatWindow: { chatId: string };
@@ -20,15 +23,14 @@ type RootStackParamList = {
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const navigationToLogin =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
-  const { loggedUser, socket, setLoggedUser } = useAuth();
 
+  const { removeToken, removeLoggedUser, loggedUser } = useAuthStore();
+  const { colors, images } = useTheme();
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem("userInfo");
-      await AsyncStorage.removeItem("chats");
-      await AsyncStorage.removeItem("token");
-      socket?.emit("logout", loggedUser?._id);
-      setLoggedUser(null);
+      removeToken();
+      removeLoggedUser();
+      // socket?.emit("logout", loggedUser?._id);
       navigationToLogin.navigate("Login");
       console.log("Token removed successfully");
     } catch (error) {
@@ -38,28 +40,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const deleteUserAccount = async () => {
     navigation.navigate("DeleteAccount");
   };
-
-  useEffect(() => {
-    navigation.setOptions({
-      //   headerLeft: () => (
-      //     <TouchableOpacity
-      //       onPress={() => navigation.goBack()}
-      //       style={styles.backButton}
-      //     >
-      //       <Image
-      //         source={require("../../../assets/back.png")} // Your custom back icon image
-      //         style={styles.backIcon}
-      //       />
-      //     </TouchableOpacity>
-      //   ),
-      headerTitle: () => (
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>User Profile</Text>
-        </View>
-      ),
-      headerRight: () => <View></View>,
-    });
-  }, [navigation]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -74,49 +54,98 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.profileHeader}>
-        <Image
-          source={require("../../../assets/user.png")}
-          style={styles.profilePicture}
-        />
-        <Text style={styles.name}>{loggedUser?.name}</Text>
-        <Text style={styles.userType}>{loggedUser?.userType}</Text>
+    <SafeAreaView style={styles.container}>
+      <View
+        style={[
+          {
+            marginBottom: 20,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 30,
+            gap: 10,
+            paddingTop: 30,
+            paddingBottom: 20,
+            borderBottomEndRadius: 30,
+            borderBottomStartRadius: 30,
+          },
+          { backgroundColor: colors.primary },
+        ]}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-outline" size={34} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.name, { color: colors.text }]}>
+          {loggedUser?.name}
+        </Text>
       </View>
-      <View style={styles.detailsContainer}>
-        <Text style={styles.detailText}>Email: {loggedUser?.email}</Text>
-        <Text style={styles.detailText}>Phone: {loggedUser?.phoneNumber}</Text>
-        <Text style={styles.detailText}>
+      <View
+        style={[
+          styles.profileHeader,
+          { marginHorizontal: 30 },
+          { backgroundColor: colors.secondary },
+        ]}
+      >
+        <FontAwesome name="user" size={84} color={colors.text} />
+        <Text style={[styles.name, { color: colors.text }]}>
+          {loggedUser?.name}
+        </Text>
+        <Text style={[styles.userType, { color: colors.text }]}>
+          {loggedUser?.userType}
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.detailsContainer,
+          { marginHorizontal: 30 },
+          { backgroundColor: colors.secondary },
+        ]}
+      >
+        <Text style={[styles.detailText, { color: colors.text }]}>
+          Email: {loggedUser?.email}
+        </Text>
+        <Text style={[styles.detailText, { color: colors.text }]}>
+          Phone: {loggedUser?.phoneNumber}
+        </Text>
+        <Text style={[styles.detailText, { color: colors.text }]}>
           WhatsApp: {loggedUser?.whatsappNumber}
         </Text>
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleLogout}>
-          <Text style={styles.buttonText}>Logout</Text>
+      <View style={[styles.buttonContainer, { marginHorizontal: 30 }]}>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.primary }]}
+          onPress={handleLogout}
+        >
+          <Text style={[styles.buttonText, { color: colors.text }]}>
+            Logout
+          </Text>
         </TouchableOpacity>
         {loggedUser?.userType !== "Super-Admin" && (
           <TouchableOpacity
-            style={[styles.button, styles.deleteButton]}
+            style={[
+              styles.button,
+              styles.deleteButton,
+              { backgroundColor: colors.primary },
+            ]}
             onPress={deleteUserAccount}
           >
-            <Text style={styles.buttonText}>Delete Account</Text>
+            <Text style={[styles.buttonText, { color: colors.text }]}>
+              Delete Account
+            </Text>
           </TouchableOpacity>
         )}
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 20,
   },
   profileHeader: {
     alignItems: "center",
     marginBottom: 20,
-    backgroundColor: "#ffffff",
     borderRadius: 10,
     padding: 20,
     shadowColor: "#000",
@@ -143,7 +172,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   detailsContainer: {
-    backgroundColor: "#ffffff",
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
@@ -154,25 +182,20 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 16,
-    color: "#333",
     marginBottom: 10,
   },
   buttonContainer: {
     marginTop: 20,
   },
   button: {
-    backgroundColor: "#187afa",
     borderRadius: 10,
     paddingVertical: 15,
     paddingHorizontal: 20,
     marginBottom: 10,
     alignItems: "center",
   },
-  deleteButton: {
-    backgroundColor: "#187afa",
-  },
+  deleteButton: {},
   buttonText: {
-    color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -186,7 +209,6 @@ const styles = StyleSheet.create({
     tintColor: "#555",
   },
   headerContainer: {
-    justifyContent: "center",
     alignItems: "center",
   },
   headerTitle: {

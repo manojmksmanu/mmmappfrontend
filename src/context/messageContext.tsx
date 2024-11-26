@@ -37,7 +37,7 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
   const [allMessages, setAllMessages] = useState<Message[] | null>(null);
   const fetchAllMessages = async () => {
     try {
-      const response: any = await getAllMessages(loggedUser._id);
+      const response: any = await getAllMessages(loggedUser?._id);
       if (!Array.isArray(response)) {
         throw new TypeError("Expected chatsData to be an array");
       }

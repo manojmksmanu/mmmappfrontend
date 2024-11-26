@@ -2,9 +2,10 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { getUserFirstLetter } from "../../misc/misc";
 import { useAuth } from "../../context/userContext";
+import { useAuthStore } from "src/services/storage/authStore";
 
 const GroupInfoProfilePhoto: React.FC = (name) => {
-  const { loggedUser } = useAuth();
+  const { loggedUser } = useAuthStore();
   return (
     <View style={styles.profileCircle}>
       {loggedUser ? (

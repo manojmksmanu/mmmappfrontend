@@ -13,12 +13,12 @@ export const getSender = (loggedUser: any, users: any[]) => {
     const sender = users.find((chatUser) => {
       return (
         chatUser.user &&
-        chatUser.user._id?.toString() !== loggedUser._id.toString()
+        chatUser.user._id?.toString() !== loggedUser?._id.toString()
       );
     });
     return sender ? sender : "Unknown Sender";
   }
-  return "Unknown Sender r";
+  return "Unknown Sender";
 };
 
 export const getSenderName = (loggedUser: User, chatUsers: any[]) => {
@@ -26,7 +26,7 @@ export const getSenderName = (loggedUser: User, chatUsers: any[]) => {
     const sender = chatUsers.find((chatUser) => {
       return (
         chatUser.user &&
-        chatUser.user._id?.toString() !== loggedUser._id.toString()
+        chatUser.user._id?.toString() !== loggedUser?._id.toString()
       );
     });
     return sender ? sender.user?.name || "Unknown Sender" : "Unknown Sender";
@@ -39,7 +39,7 @@ export const getSendedType = (loggedUser: User, chatUsers: any[]) => {
     const sender = chatUsers.find((chatUser) => {
       return (
         chatUser.user &&
-        chatUser.user._id?.toString() !== loggedUser._id.toString()
+        chatUser.user._id?.toString() !== loggedUser?._id.toString()
       );
     });
     return sender ? sender.user?.userType || "Unknown Type" : "Unknown Type";
@@ -56,7 +56,7 @@ export const getSenderStatus = (
     const sender = chatUsers.find((chatUser) => {
       return (
         chatUser.user &&
-        chatUser.user._id?.toString() !== loggedUser._id.toString()
+        chatUser.user._id?.toString() !== loggedUser?._id.toString()
       );
     });
 

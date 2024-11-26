@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
   Image,
-  Alert,
   Modal,
 } from "react-native";
-import { addUserToGroupChat, getAllUsers } from "../../services/chatService";
+import {
+  addUserToGroupChat,
+  getAllUsers,
+} from "../../services/api/chatService";
 import { useAuth } from "../../context/userContext";
 import { ScrollView, TextInput } from "react-native-gesture-handler";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import { getUserFirstLetter } from "../../misc/misc";
 import { showMessage, hideMessage } from "react-native-flash-message";
+import { addUserToGroupStyle } from "../styles/addUserToGroupScreen";
+import { useAuthStore } from "src/services/storage/authStore";
+import { useUserStore } from "src/services/storage/usersStore";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Entypo from "@expo/vector-icons/Entypo";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 interface User {
   id: string;
@@ -24,11 +31,12 @@ interface User {
 
 const AddUserToGroupScreen: React.FC = () => {
   const [searchText, setSearchText] = useState<string>("");
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [addUserloading, setAddUserLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { loggedUser } = useAuth();
+  const { loggedUser, token } = useAuthStore();
+  const { setUsers, users } = useUserStore();
+  const { colors } = useTheme();
   const [filteredUsers, setFilteredUsers] = useState<any[] | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const { FetchChatsAgain, selectedChat, setSelectedChat } = useAuth() as {
@@ -57,7 +65,7 @@ const AddUserToGroupScreen: React.FC = () => {
     setError(null);
     try {
       const currentUserType = loggedUser?.userType;
-      const fetchedUsers = await getAllUsers(currentUserType);
+      const fetchedUsers = await getAllUsers(currentUserType, setUsers, token);
       setUsers(fetchedUsers);
       setFilteredUsers(fetchedUsers);
     } catch (error: any) {
@@ -115,9 +123,6 @@ const AddUserToGroupScreen: React.FC = () => {
     handleGetUsers();
   }, []);
 
-  const filterAndShowTick = (item: any) => {
-    return selectedUsers.some((user) => user._id === item._id);
-  };
   const filterAndShowAlreadyIn = (item: any) => {
     return selectedChat.users.some((user: any) => user.user._id === item._id);
   };
@@ -127,34 +132,36 @@ const AddUserToGroupScreen: React.FC = () => {
       onPress={() => {
         !filterAndShowAlreadyIn(item) ? handleAddUser(item) : null;
       }}
-      style={styles.userContainer}
+      style={addUserToGroupStyle.userContainer}
     >
-      <View style={styles.profileCircle}>
+      <View
+        style={[
+          addUserToGroupStyle.profileCircle,
+          selectedUsers.some((user) => user._id === item._id) && {
+            borderColor: "#059dc0",
+            borderWidth: 8,
+          },
+        ]}
+      >
         {loggedUser ? (
-          <Text style={styles.profileText}>
+          <Text style={addUserToGroupStyle.profileText}>
             {getUserFirstLetter(item?.name)}
           </Text>
         ) : null}
-        {filterAndShowTick(item) && (
-          <Image
-            style={{
-              width: 20,
-              height: 20,
-              position: "absolute",
-              right: -2,
-              bottom: -2,
-            }}
-            source={require("../../../assets/check.png")}
-          />
-        )}
       </View>
 
-      <View style={styles.userInfo}>
-        <View style={styles.userHeader}>
+      <View style={addUserToGroupStyle.userInfo}>
+        <View style={addUserToGroupStyle.userHeader}>
           <View>
-            <Text style={styles.username}>{item?.name}</Text>
+            <Text
+              style={[addUserToGroupStyle.username, { color: colors.text }]}
+            >
+              {item?.name}
+            </Text>
             {loggedUser ? (
-              <Text style={styles.userTypeText}>{item?.userType}</Text>
+              <Text style={addUserToGroupStyle.userTypeText}>
+                {item?.userType}
+              </Text>
             ) : null}
           </View>
 
@@ -168,28 +175,15 @@ const AddUserToGroupScreen: React.FC = () => {
             {filterAndShowAlreadyIn(item) && (
               <TouchableOpacity
                 style={{
-                  backgroundColor: "#187afa",
+                  backgroundColor: "#1f262b",
                   paddingHorizontal: 10,
-                  paddingVertical: 5,
+                  paddingVertical: 10,
                   borderRadius: 5,
                 }}
               >
-                <Text style={{ fontSize: 10, color: "white" }}>
-                  Already in group
-                </Text>
+                <Text style={{ fontSize: 10, color: "white" }}>Member</Text>
               </TouchableOpacity>
             )}
-            {/* {filterAndShowTick(item) ? (
-              <Image
-                style={{
-                  width: 20,
-                  height: 20,
-                }}
-                source={require('../../../assets/check-lists.png')}
-              />
-            ) : (
-              ''
-            )} */}
           </View>
         </View>
       </View>
@@ -207,17 +201,19 @@ const AddUserToGroupScreen: React.FC = () => {
           marginLeft: 10,
         }}
       >
-        <Text
+        <Entypo
+          name="circle-with-cross"
           style={{
             position: "absolute",
             zIndex: 10,
-            right: 5,
-            top: 5,
-            color: "#187afa",
+            right: -1,
+            top: 3,
+            backgroundColor: "white",
+            borderRadius: 100,
           }}
-        >
-          x
-        </Text>
+          size={24}
+          color="#059dc0"
+        />
 
         <View
           style={{
@@ -235,7 +231,7 @@ const AddUserToGroupScreen: React.FC = () => {
           }}
         >
           {loggedUser ? (
-            <Text style={styles.profileText}>
+            <Text style={addUserToGroupStyle.profileText}>
               {getUserFirstLetter(item?.name)}
             </Text>
           ) : null}
@@ -246,6 +242,10 @@ const AddUserToGroupScreen: React.FC = () => {
             color: "black",
             fontSize: 10,
             textAlign: "center",
+            borderRadius: 5,
+            fontWeight: "bold",
+            padding: 5,
+            marginTop: 2,
           }}
         >
           {item.name}
@@ -255,43 +255,56 @@ const AddUserToGroupScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={addUserToGroupStyle.container}>
+      <View
+        style={[
+          addUserToGroupStyle.header,
+          { backgroundColor: colors.primary },
+        ]}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-outline" size={34} color={colors.text} />
+        </TouchableOpacity>
+        <Text
+          style={[
+            { color: colors.text },
+            { fontSize: 20 },
+            { fontWeight: "bold" },
+          ]}
+        >
+          Add Users
+        </Text>
+      </View>
       <View>
         <View style={{ marginLeft: 20 }}>
           {selectedChat && (
-            <Text style={{ color: "#187afa" }}>{selectedChat.groupName}</Text>
+            <Text style={{ color: "#059dc0" }}>{selectedChat.groupName}</Text>
           )}
           <Text style={{ color: "grey" }}>
             Number of members in group : {selectedChat.users.length}
           </Text>
         </View>
       </View>
-      {
-        <View style={styles.searchContainer}>
-          <Image style={styles.icon} source={require("../../../assets/search.png")} />
-          <TextInput
-            style={styles.input}
-            placeholder="Search users..."
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholderTextColor="#888"
-            autoCapitalize="none"
-          />
-          <TouchableOpacity
-            style={{ position: "absolute", right: 10, top: 22 }}
-            onPress={() => setSearchText("")}
-          >
-            <Image
-              style={{
-                width: 20,
-                height: 20,
-                opacity: 0.5,
-              }}
-              source={require("../../../assets/remove.png")}
-            />
-          </TouchableOpacity>
-        </View>
-      }
+
+      <View
+        style={[
+          addUserToGroupStyle.searchContainer,
+          { backgroundColor: colors.primary },
+        ]}
+      >
+        <Ionicons name="search" size={44} color={colors.text} />
+        <TextInput
+          style={[addUserToGroupStyle.input, { color: colors.text }]}
+          placeholder="Search users..."
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholderTextColor={colors.text}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity onPress={() => setSearchText("")}>
+          <FontAwesome6 name="times-circle" size={24} color={colors.text} />
+        </TouchableOpacity>
+      </View>
 
       {loading ? (
         <View
@@ -352,7 +365,7 @@ const AddUserToGroupScreen: React.FC = () => {
           <TouchableOpacity
             onPress={handleAddUserToGroup}
             style={{
-              backgroundColor: "#187afa",
+              backgroundColor: "#059dc0",
               width: "90%",
               padding: 15,
               borderRadius: 10,
@@ -377,124 +390,15 @@ const AddUserToGroupScreen: React.FC = () => {
         visible={addUserloading}
         onRequestClose={() => {}} // Prevent closing modal manually
       >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
+        <View style={addUserToGroupStyle.modalBackground}>
+          <View style={addUserToGroupStyle.modalContent}>
             <ActivityIndicator size="large" color="#ffffff" />
-            <Text style={styles.loadingText}>Processing...</Text>
+            <Text style={addUserToGroupStyle.loadingText}>Processing...</Text>
           </View>
         </View>
       </Modal>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 5,
-    paddingVertical: 10,
-    backgroundColor: "white",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 30,
-    marginVertical: 10,
-    margin: 15,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: "#333",
-    paddingLeft: 8,
-  },
-  icon: {
-    marginRight: 8,
-    width: 30,
-    height: 30,
-  },
-  loadingIndicator: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  profileCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
-  },
-  profileText: {
-    fontSize: 20,
-    color: "#333",
-  },
-  userTypeText: {
-    fontSize: 12,
-    color: "grey",
-  },
-  userContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-    marginBottom: 20,
-    margin: 20,
-  },
-  inputGroup: {
-    color: "#333",
-    fontSize: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
-  },
-  modalContent: {
-    backgroundColor: "#333",
-    padding: 20,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    color: "#fff",
-    marginTop: 10,
-    fontSize: 16,
-  },
-});
 
 export default AddUserToGroupScreen;

@@ -1,21 +1,20 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from "../config";
+import { useAuthStore } from "../storage/authStore";
+const API_URL = `${BASE_URL}/api`;
 
-interface User {
-  _id: string;
-  name: string;
-  userType: any;
-}
-// const API_URL = "https://mmmappbackend-yrsy.onrender.com/api";
-const API_URL = "http://10.0.2.2:5000/api";
-
-export const getAllChats = async (userId: string): Promise<any> => {
-  const token = await AsyncStorage.getItem("token");
+export const getAllChats = async (
+  userId: string,
+  setChats: any
+): Promise<any> => {
+  const token = await useAuthStore.getState().token;
+  console.log(token);
   try {
     const response = await axios.get(`${API_URL}/chat/${userId}/chats`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data;
+    // await setChats(response.data);
   } catch (err: any) {
     console.error(
       "Failed to fetch users:",
@@ -25,9 +24,7 @@ export const getAllChats = async (userId: string): Promise<any> => {
   }
 };
 
-export const getAllUsers = async (currentUserType: string) => {
-  console.log(currentUserType);
-  const token = await AsyncStorage.getItem("token");
+export const getAllUsers = async (currentUserType: string,setUsers:any, token: any) => {
   try {
     const response = await axios.get(`${API_URL}/users`, {
       params: { currentUserType },
@@ -37,6 +34,7 @@ export const getAllUsers = async (currentUserType: string) => {
     });
 
     const users = response.data;
+    setUsers(users);
     return users;
   } catch (error: any) {
     console.error("Error fetching users for chat:", error);
@@ -46,8 +44,7 @@ export const getAllUsers = async (currentUserType: string) => {
   }
 };
 
-export const createGroupChat = async (users: any, groupName: string) => {
-  const token = await AsyncStorage.getItem("token");
+export const createGroupChat = async (users: any, groupName: string,token:any) => {
   if (!token) {
     console.error("No token found");
     return;

@@ -1,8 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   Image,
   TouchableOpacity,
   ScrollView,
@@ -11,31 +10,37 @@ import {
   TouchableWithoutFeedback,
   Modal,
   TextInput,
-} from 'react-native';
-import {useAuth} from '../../context/userContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getUserFirstLetter} from '../../misc/misc';
-import GroupInfoProfilePhoto from '../../components/smallComp/GroupInfoProfilePhoto';
+} from "react-native";
+import { useAuth } from "../../context/userContext";
+import { getUserFirstLetter } from "../../misc/misc";
+import GroupInfoProfilePhoto from "../../components/smallComp/GroupInfoProfilePhoto";
 import { showMessage } from "react-native-flash-message";
-import {removeUserFromGroup, renameGroupName} from '../../services/chatService';
+import { groupInfoStyles } from "../styles/groupInfoScreen";
+import {
+  removeUserFromGroup,
+  renameGroupName,
+} from "../../services/api/chatService";
+import { useTheme } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useAuthStore } from "src/services/storage/authStore";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
-  route,
+const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
   navigation,
 }) => {
-  const {selectedChat, loggedUser, FetchChatsAgain, setSelectedChat} =
-    useAuth() as {
-      selectedChat: any;
-      loggedUser: any;
-      FetchChatsAgain: any;
-      setSelectedChat: any;
-    };
-  const [renameGroup, setRenameGroup] = useState('');
+  const { selectedChat, setSelectedChat } = useAuth() as {
+    selectedChat: any;
+    setSelectedChat: any;
+  };
+  const { loggedUser } = useAuthStore();
+  const [renameGroup, setRenameGroup] = useState("");
   const [openRenameModal, setOpenRenameModal] = useState<boolean>(false);
   const [renameLoading, setRenameLoading] = useState<boolean>(false);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState(null);
+  const { colors } = useTheme();
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
@@ -46,16 +51,16 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
       `Are you sure you want to remove ${item.name} from the ${selectedChat.groupName}?`, // Message of the alert
       [
         {
-          text: 'Cancel', // Text for the cancel button
-          onPress: () => console.log('User not removed'), // Action for cancel
-          style: 'cancel',
+          text: "Cancel", // Text for the cancel button
+          onPress: () => console.log("User not removed"), // Action for cancel
+          style: "cancel",
         },
         {
-          text: 'OK', // Text for the confirm button
+          text: "OK", // Text for the confirm button
           onPress: () => removeUser(item), // Action for confirm
         },
       ],
-      {cancelable: false}, // Prevent closing the alert by tapping outside
+      { cancelable: false } // Prevent closing the alert by tapping outside
     );
   };
 
@@ -64,26 +69,26 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
     setError(null);
     try {
       const data = await removeUserFromGroup(selectedChat._id, item._id);
-      FetchChatsAgain();
+      // FetchChatsAgain();
       setSelectedChat(data.chat);
-    showMessage({
-      message: "Success", // You can set a simple title here
-      description: `${item.name} removed from ${selectedChat.groupName}`, // Equivalent to text2 for more details
-      type: "success", // Display as a success message
-      autoHide: true,
-      duration: 1000, // Equivalent to visibilityTime
-    });
+      showMessage({
+        message: "Success",
+        description: `${item.name} removed from ${selectedChat.groupName}`,
+        type: "success",
+        autoHide: true,
+        duration: 1000,
+      });
     } catch (error: any) {
-    showMessage({
-      message: "Error", // Title for the error message
-      description: `${error.message}`, // Detailed error message (equivalent to text2)
-      type: "danger", // 'danger' maps to error messages in flash-message
-      autoHide: true,
-      duration: 2000, // Equivalent to visibilityTime
-    });
+      showMessage({
+        message: "Error",
+        description: `${error.message}`,
+        type: "danger",
+        autoHide: true,
+        duration: 2000,
+      });
       setError(error.message);
     } finally {
-      FetchChatsAgain();
+      // FetchChatsAgain();
       setLoading(false);
     }
   };
@@ -93,67 +98,72 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
     setError(null);
     try {
       const data = await renameGroupName(selectedChat._id, renameGroup);
-      FetchChatsAgain();
+      // FetchChatsAgain();
       setSelectedChat(data.chat);
-     showMessage({
-       message: "Success", // Title for the success message
-       description: `New name of group is ${data.chat.groupName}`, // Detailed success message (equivalent to text2)
-       type: "success", // Success message type
-       autoHide: true,
-       duration: 1000, // Equivalent to visibilityTime
-     });
+      showMessage({
+        message: "Success", // Title for the success message
+        description: `New name of group is ${data.chat.groupName}`, // Detailed success message (equivalent to text2)
+        type: "success", // Success message type
+        autoHide: true,
+        duration: 1000, // Equivalent to visibilityTime
+      });
       setOpenRenameModal(false);
     } catch (error: any) {
-    showMessage({
-      message: "Error", // Title for the error message
-      description: `${error.message}`, // Detailed error message (equivalent to text2)
-      type: "danger", // 'danger' maps to error messages
-      autoHide: true,
-      duration: 2000, // Equivalent to visibilityTime
-    });
+      showMessage({
+        message: "Error", // Title for the error message
+        description: `${error.message}`, // Detailed error message (equivalent to text2)
+        type: "danger", // 'danger' maps to error messages
+        autoHide: true,
+        duration: 2000, // Equivalent to visibilityTime
+      });
       setError(error.message);
     } finally {
-      FetchChatsAgain();
+      // FetchChatsAgain();
       setRenameLoading(false);
     }
   };
 
   const handleAddUserToGroup = () => {
-    navigation.navigate('AddUserToGroup');
+    navigation.navigate("AddUserToGroup");
   };
   const handleModalClose = () => {
     setOpenRenameModal(false);
   };
   const renderItem = (item: any) => (
     <>
-      {console.log(item.name)}
-      <View style={styles.userContainer}>
-        <View style={styles.profileCircle}>
-          {loggedUser ? (
-            <Text style={styles.profileText}>
-              {getUserFirstLetter(item?.name)}
-            </Text>
-          ) : null}
+      <View style={groupInfoStyles.userContainer}>
+        <View style={groupInfoStyles.profileCircle}>
+          <Text style={[groupInfoStyles.profileText]}>
+            {getUserFirstLetter(item?.name)}
+          </Text>
         </View>
 
-        <View style={styles.userInfo}>
-          <View style={styles.userHeader}>
-            <Text style={styles.username}>{item?.name}</Text>
-            {loggedUser._id !== item._id && loggedUser ? (
+        <View style={groupInfoStyles.userInfo}>
+          <View style={groupInfoStyles.userHeader}>
+            <Text style={[groupInfoStyles.username, { color: colors.text }]}>
+              {item?.name}
+            </Text>
+            {loggedUser?._id !== item._id && loggedUser ? (
               <View
                 style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
                   gap: 10,
-                }}>
-                <Text style={styles.userTypeText}>{item?.userType}</Text>
-                {item.userType !== 'Super-Admin' && (
+                }}
+              >
+                <Text
+                  style={[groupInfoStyles.userTypeText, { color: colors.text }]}
+                >
+                  {item?.userType}
+                </Text>
+                {item.userType !== "Super-Admin" && (
                   <TouchableOpacity onPress={() => handleRemoveUser(item)}>
-                    <Image
-                      style={styles.removeUser}
-                      source={require('../../../assets/delete.png')}
+                    <MaterialCommunityIcons
+                      name="delete-empty"
+                      size={28}
+                      color={colors.text}
                     />
                   </TouchableOpacity>
                 )}
@@ -165,38 +175,56 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
     </>
   );
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={groupInfoStyles.container}>
+      <View
+        style={[groupInfoStyles.header, { backgroundColor: colors.primary }]}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-outline" size={34} color={colors.text} />
+        </TouchableOpacity>
+        <Text
+          style={[
+            { color: colors.text },
+            { fontSize: 20 },
+            { fontWeight: "bold" },
+          ]}
+        >
+          GroupInfo
+        </Text>
+      </View>
       {/* ----Top Group name--  */}
       <View
         style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'white',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
           paddingTop: 20,
           paddingBottom: 30,
-          borderBottomLeftRadius: 30,
-          borderBottomRightRadius: 30,
-        }}>
+          borderRadius: 30,
+        }}
+      >
         {GroupInfoProfilePhoto(selectedChat.groupName)}
         <View
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
             gap: 10,
             opacity: 0.8,
-          }}>
+          }}
+        >
           {selectedChat && (
-            <Text style={{color: '#187afa', fontSize: 20}}>
+            <Text
+              style={{ color: colors.text, fontSize: 20, fontWeight: "bold" }}
+            >
               {selectedChat.groupName}
             </Text>
           )}
           <TouchableOpacity onPress={() => setOpenRenameModal(true)}>
             <Image
-              style={{width: 30, height: 30}}
-              source={require('../../../assets/edit.png')}
+              style={{ width: 30, height: 30 }}
+              source={require("../../../assets/edit.png")}
             />
           </TouchableOpacity>
         </View>
@@ -204,27 +232,38 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
 
       {/* -----all members of group-----  */}
       <View
-        style={{
-          marginTop: 10,
-          backgroundColor: 'white',
-          borderTopLeftRadius: 30,
-          borderTopRightRadius: 30,
-          borderRadius: 30,
-        }}>
+        style={[
+          {
+            marginTop: 10,
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
+            borderRadius: 30,
+          },
+          { backgroundColor: colors.primary },
+        ]}
+      >
         <View
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-          <Text style={{marginTop: 25, marginLeft: 30, color: 'grey'}}>
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text
+            style={{
+              marginTop: 25,
+              marginLeft: 30,
+              color: colors.text,
+              opacity: 0.8,
+            }}
+          >
             Total members : {selectedChat.users.length}
           </Text>
           {loading && (
             <View>
               <ActivityIndicator
-                style={{marginTop: 30, marginRight: 20}}
+                style={{ marginTop: 30, marginRight: 20 }}
                 size="small"
               />
             </View>
@@ -233,9 +272,10 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
         <>
           <View
             style={[
-              styles.allUserContainer,
-              {maxHeight: expanded ? undefined : 200},
-            ]}>
+              groupInfoStyles.allUserContainer,
+              { maxHeight: expanded ? undefined : 200 },
+            ]}
+          >
             {selectedChat &&
               selectedChat.users.map((user: any) => (
                 <View key={user.user.id}>{renderItem(user.user)}</View>
@@ -244,9 +284,16 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
           {selectedChat && selectedChat.users.length > 3 && (
             <TouchableOpacity
               onPress={toggleExpand}
-              style={styles.showMoreButton}>
-              <Text style={styles.showMoreText}>
-                {expanded ? 'Show Less' : 'Show All Members'}
+              style={groupInfoStyles.showMoreButton}
+            >
+              <Text
+                style={[
+                  groupInfoStyles.showMoreText,
+                  { color: colors.text },
+                  { opacity: 0.7 },
+                ]}
+              >
+                {expanded ? "Show Less" : "Show All Members"}
               </Text>
             </TouchableOpacity>
           )}
@@ -258,28 +305,27 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
         style={{
           flex: 1,
           marginTop: 10,
-          backgroundColor: 'white',
+          backgroundColor: colors.primary,
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
           borderRadius: 30,
           paddingTop: 30,
           paddingBottom: 30,
           paddingHorizontal: 40,
-        }}>
+        }}
+      >
         <TouchableOpacity
           onPress={handleAddUserToGroup}
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
             gap: 10,
             marginBottom: 20,
-          }}>
-          <Image
-            style={{width: 25, height: 25, opacity: 0.6}}
-            source={require('../../../assets/user.png')}
-          />
-          <Text style={{color: 'grey', fontSize: 18}}>Add Users</Text>
+          }}
+        >
+          <FontAwesome name="user" size={34} color={colors.text} />
+          <Text style={{ color: colors.text, fontSize: 18 }}>Add Users</Text>
         </TouchableOpacity>
         {/* <View
           style={{
@@ -305,20 +351,21 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
       >
         <TouchableWithoutFeedback
           onPress={() => {
-            renameLoading !== true ? handleModalClose() : '';
-          }}>
-          <View style={styles.modalBackground}>
+            renameLoading !== true ? handleModalClose() : "";
+          }}
+        >
+          <View style={groupInfoStyles.modalBackground}>
             <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
+              <View style={groupInfoStyles.modalContent}>
                 {!renameLoading && (
                   <View>
-                    <View style={styles.inputContainer}>
+                    <View style={groupInfoStyles.inputContainer}>
                       <TextInput
                         placeholder="Enter New Group Name"
                         placeholderTextColor="grey"
                         value={renameGroup}
                         onChangeText={setRenameGroup}
-                        style={styles.textInput}
+                        style={groupInfoStyles.textInput}
                       />
                     </View>
                     {renameGroup.length < 5 && renameGroup.length > 0 && (
@@ -329,20 +376,22 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
                         <TouchableOpacity
                           onPress={handleRenameGroup}
                           style={{
-                            width: '100%',
+                            width: "100%",
                             marginHorizontal: 2,
                             marginVertical: 4,
                             paddingHorizontal: 8,
-                            backgroundColor: '#187afa',
+                            backgroundColor: "#187afa",
                             borderRadius: 10,
-                          }}>
+                          }}
+                        >
                           <Text
                             style={{
-                              textAlign: 'center',
-                              color: 'white',
+                              textAlign: "center",
+                              color: "white",
                               margin: 10,
                               fontWeight: 700,
-                            }}>
+                            }}
+                          >
                             Rename
                           </Text>
                         </TouchableOpacity>
@@ -354,7 +403,9 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
                 {renameLoading && (
                   <>
                     <ActivityIndicator size="large" color="grey" />
-                    <Text style={styles.loadingText}>Processing...</Text>
+                    <Text style={groupInfoStyles.loadingText}>
+                      Processing...
+                    </Text>
                   </>
                 )}
               </View>
@@ -365,101 +416,5 @@ const GroupInfoScreen: React.FC<{route: any; navigation: any}> = ({
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  allUserContainer: {minHeight: 200, overflow: 'hidden'},
-  userContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  profileCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
-  },
-  profileText: {
-    fontSize: 20,
-    color: '#333',
-  },
-  userTypeText: {
-    fontSize: 12,
-    color: 'grey',
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  removeUser: {
-    width: 22,
-    height: 22,
-    opacity: 0.5,
-  },
-  showMoreButton: {
-    marginTop: 30,
-    marginLeft: 30,
-    marginBottom: 30,
-  },
-  showMoreText: {
-    color: '#007bff',
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: 'grey',
-    marginTop: 10,
-    fontSize: 16,
-  },
-  inputContainer: {
-    borderColor: 'grey',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    // marginTop: 10,
-    width: '100%', // Adjust width as per your layout
-  },
-  textInput: {
-    color: 'grey', // Color for the entered text
-    fontSize: 16,
-  },
-});
 
 export default GroupInfoScreen;

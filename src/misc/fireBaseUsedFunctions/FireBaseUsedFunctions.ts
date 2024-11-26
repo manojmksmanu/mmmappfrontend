@@ -1,11 +1,9 @@
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import * as Camera from "expo-camera";
 import { showMessage } from "react-native-flash-message";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from "../fireBaseConfig/fireBaseConfig";
 import * as MediaLibrary from "expo-media-library";
-
 // --- request to access to filemanager of device --
 export const requestDocumentPickerPermissions = async () => {
   const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -21,13 +19,14 @@ export const openDocumentPicker = async (
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
   setSendingPercentage: any,
-  checkAndSaveMessageLocally: any,
   chatId: any,
   sender: string,
   senderName: string,
   replyingMessage: any,
   messageId: any,
-  socket: any
+  socket: any,
+  updateChat: any,
+  updatedMessage: any
 ) => {
   const hasPermission = await requestDocumentPickerPermissions();
   if (!hasPermission) {
@@ -48,13 +47,14 @@ export const openDocumentPicker = async (
       setSending,
       setIsSending,
       setSendingPercentage,
-      checkAndSaveMessageLocally,
       chatId,
       sender,
       senderName,
       replyingMessage,
       messageId,
-      socket
+      socket,
+      updateChat,
+      updatedMessage
     );
     return docRes;
   } catch (err) {
@@ -67,13 +67,14 @@ export const uploadToFirebaseDocument = async (
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
   setSendingPercentage: any,
-  checkAndSaveMessageLocally: any,
   chatId: any,
   sender: string,
   senderName: string,
   replyingMessage: any,
   messageId: any,
-  socket: any
+  socket: any,
+  updateChat: any,
+  updatedMessage: any
 ) => {
   if (!docRes || !docRes.assets || docRes.assets.length === 0) {
     console.error("Invalid document response");
@@ -82,10 +83,6 @@ export const uploadToFirebaseDocument = async (
 
   const asset = docRes.assets[0];
   const { uri, name, mimeType } = asset;
-
-  console.log("Extracted URI:", uri);
-  console.log("Extracted Name:", name);
-  console.log("Extracted type:", mimeType);
 
   if (!uri) {
     console.error("No URI found for the selected document");
@@ -107,8 +104,9 @@ export const uploadToFirebaseDocument = async (
       messageId,
       replyingMessage,
       status: "uploading",
+      readBy: [sender],
     };
-    checkAndSaveMessageLocally(tempMessage);
+    await updateChat(chatId, tempMessage);
     uploadTask.on(
       "state_changed",
       (snapshot) => {
@@ -138,7 +136,7 @@ export const uploadToFirebaseDocument = async (
 
           if (socket) {
             socket.emit("sendDocument", newMessage);
-            await checkAndSaveMessageLocally(newMessage);
+            await updatedMessage(chatId, messageId, newMessage);
           }
 
           setIsSending(false);
@@ -168,13 +166,14 @@ export const openCamera = async (
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
   setSendingPercentage: any,
-  checkAndSaveMessageLocally: any,
   chatId: any,
   sender: string,
   senderName: string,
   replyingMessage: any,
   messageId: any,
-  socket: any
+  socket: any,
+  updateChat: any,
+  updatedMessage: any
 ) => {
   const hasPermission = await requestCameraPermissions();
   if (!hasPermission) {
@@ -200,32 +199,26 @@ export const openCamera = async (
     // Extract the asset from the response
     const asset = docRes.assets?.[0];
     const uri = asset?.uri; // Extract the URI
-    const fileName = asset?.fileName || `image_${Date.now()}.jpg`; // Use the provided fileName or generate a new one
-
-    console.log("Captured URI:", uri);
-    console.log("Generated Filename:", fileName); // Ensure filename is logged
-    console.log("Image type:", asset?.mimeType);
-
+    const fileName = asset?.fileName || `image_${Date.now()}.jpg`;
     if (!uri) {
       console.error("No URI found for the captured image");
       return;
     }
-
     await uploadToFirebaseCamera(
       uri,
       fileName,
       setSending,
       setIsSending,
       setSendingPercentage,
-      checkAndSaveMessageLocally,
       chatId,
       sender,
       senderName,
       replyingMessage,
       messageId,
-      socket
+      socket,
+      updateChat,
+      updatedMessage
     );
-
     return docRes;
   } catch (err) {
     console.log("Error while capturing image:", err);
@@ -238,13 +231,14 @@ export const uploadToFirebaseCamera = async (
   setSending: any,
   setIsSending: React.Dispatch<React.SetStateAction<boolean>>,
   setSendingPercentage: any,
-  checkAndSaveMessageLocally: any,
   chatId: any,
   sender: string,
   senderName: string,
   replyingMessage: any,
   messageId: any,
-  socket: any
+  socket: any,
+  updateChat: any,
+  updatedMessage: any
 ) => {
   if (!uri) {
     console.error("Invalid URI for upload");
@@ -268,7 +262,7 @@ export const uploadToFirebaseCamera = async (
       replyingMessage,
       status: "uploading",
     };
-    checkAndSaveMessageLocally(tempMessage);
+    updateChat(chatId, tempMessage);
 
     uploadTask.on(
       "state_changed",
@@ -299,7 +293,7 @@ export const uploadToFirebaseCamera = async (
 
           if (socket) {
             socket.emit("sendDocument", newMessage);
-            await checkAndSaveMessageLocally(newMessage);
+            await updatedMessage(chatId, messageId, newMessage);
           }
 
           setIsSending(false);

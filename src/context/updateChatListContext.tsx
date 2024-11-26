@@ -12,6 +12,8 @@ import { useMessages } from "./messageContext";
 interface ChatListUpdateInterface {
   handleFetchAgain: () => void;
   unreadCounts: { [key: string]: number };
+  handleFetchAgainWhenScreenLoad: () => void;
+  fetchLoading: boolean;
 }
 
 const ChatListUpdateContext = createContext<
@@ -31,6 +33,7 @@ export const ChatListUpdateProvider = ({
     setChats: any;
   };
   const { fetchAllMessages } = useMessages();
+  const [fetchLoading, setFetchLoading] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>(
     {}
   );
@@ -49,6 +52,30 @@ export const ChatListUpdateProvider = ({
     }
   };
 
+const handleFetchAgainWhenScreenLoad = async () => {
+  console.log("Fetching messages and unread counts...");
+  setFetchLoading(true); // Start loading state
+  console.log("Setting fetchLoading to true");
+
+  try {
+    const allMessages = await fetchAllMessages(); // Fetch all messages
+    const updatedUnreadCounts = await loadUnreadCounts(); // Get unread counts
+    await updateChatListWithLatestMessages(allMessages); // Update chat list with latest messages
+
+    // Store unread counts in AsyncStorage
+    await AsyncStorage.setItem(
+      "unreadCounts",
+      JSON.stringify(updatedUnreadCounts)
+    );
+  } catch (error) {
+    console.error("Error during fetching or saving data:", error);
+  } finally {
+    setFetchLoading(false); // Stop loading state
+    console.log("Setting fetchLoading to false");
+  }
+};
+
+
   useEffect(() => {
     if (!socket) {
       console.log("Socket is not connected");
@@ -59,7 +86,7 @@ export const ChatListUpdateProvider = ({
       return;
     }
     socket.on("fetchAgain", (data) => {
-        console.log(data,'data shfdhsdfhsdhf')
+      console.log(data, "data shfdhsdfhsdhf");
       const chatExists = chats.some((chat: any) => chat._id === data);
       if (chatExists) {
         handleFetchAgain();
@@ -84,6 +111,7 @@ export const ChatListUpdateProvider = ({
     loadInitialUnreadCounts();
   }, []);
   const loadUnreadCounts = async () => {
+    console.log('load unread counts')
     const counts = await countUnreadMessages();
     setUnreadCounts(counts);
     return counts;
@@ -93,7 +121,7 @@ export const ChatListUpdateProvider = ({
     const chatUnreadCount = new Map();
     const messagesJson = await AsyncStorage.getItem("globalMessages");
     const messages = messagesJson ? JSON.parse(messagesJson) : [];
-    const loggedUserId = loggedUser._id;
+    const loggedUserId = loggedUser?._id;
     messages.forEach((message: any) => {
       const { chatId, readBy } = message;
       if (!readBy?.includes(loggedUserId)) {
@@ -143,7 +171,14 @@ export const ChatListUpdateProvider = ({
   };
 
   return (
-    <ChatListUpdateContext.Provider value={{ unreadCounts, handleFetchAgain }}>
+    <ChatListUpdateContext.Provider
+      value={{
+        unreadCounts,
+        handleFetchAgain,
+        handleFetchAgainWhenScreenLoad,
+        fetchLoading,
+      }}
+    >
       {children}
     </ChatListUpdateContext.Provider>
   );

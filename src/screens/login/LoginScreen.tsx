@@ -4,32 +4,36 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
   Platform,
+  ImageBackground,
   StatusBar,
 } from "react-native";
-import { loggeduser, login } from "../../services/authService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAuth } from "../../context/userContext";
+import { login } from "../../services/api/authService";
 import { Picker } from "@react-native-picker/picker";
 import { showMessage } from "react-native-flash-message";
 import { isValidEmail } from "../../misc/misc";
+import { useTheme } from "@react-navigation/native";
+import { localLoginStyles } from "../styles/loginScreen";
+import { commonStyles } from "../styles/commonStyles";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { BlurView } from "expo-blur";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Animated, { BounceInDown, FadeInDown } from "react-native-reanimated";
+import { useAuthStore } from "src/services/storage/authStore";
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const { colors, images } = useTheme();
   const [email, setEmail] = useState<string>("");
   const [userType, SetUserType] = useState<string>("Admin");
   const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const { setLoggedUser, socket } = useAuth();
-
+  const [loginLoading, setLoginLoading] = useState<boolean>(false);
+  const { setToken, setLoggedUser } = useAuthStore();
   const handleSignUpPress = () => {
     navigation.navigate("SignUp");
   };
-
   const handleLogin = async () => {
     if (!email || !isValidEmail(email)) {
       showMessage({
@@ -40,13 +44,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       return;
     }
     try {
-      setLoading(true);
-      await login(email, userType, password);
-      const user: any = await loggeduser();
-      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
-      setLoggedUser(user);
-      socket?.emit("userOnline", user._id);
-      setLoading(false);
+      setLoginLoading(true);
+      await login(email, userType, password, setToken, setLoggedUser);
+      setLoginLoading(false);
       navigation.navigate("ChatList");
       Alert.alert("Login successful");
     } catch (error: any) {
@@ -55,7 +55,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         description: `${error.message}`,
         type: "danger",
       });
-      setLoading(false);
+      setLoginLoading(false);
     }
   };
 
@@ -64,194 +64,160 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    // <KeyboardAvoidingView
+    //   style={[
+    //     localLoginStyles.container,
+    //     { backgroundColor: colors.background },
+    //   ]}
+    //   behavior={Platform.OS === "ios" ? "padding" : "height"}
+    // >
+    <ImageBackground
+      style={[
+        localLoginStyles.container,
+        { paddingTop: Platform.OS === "ios" ? 50 : 0 },
+      ]} // Adjust padding for status bar
+      source={images?.background}
     >
       <StatusBar
         barStyle={Platform.OS === "ios" ? "dark-content" : "light-content"}
-        backgroundColor="#187afa" // Set the background color for Android
-        translucent={false} // Ensure the status bar is not translucent
+        translucent={true}
+        backgroundColor="transparent" // Make background transparent so that image shows through
       />
-      <Text style={styles.logoText}>MyMegaminds</Text>
+      <Animated.View
+        entering={BounceInDown}
+        exiting={FadeInDown}
+        style={localLoginStyles.headContentContainer}
+      >
+        <Text style={localLoginStyles.loginText}>Login</Text>
+        <Text style={localLoginStyles.logoText}>MyMegaminds</Text>
+        <Text style={localLoginStyles.welcomeText}>Welcome Back 🖐</Text>
+      </Animated.View>
 
       {/* Email Input */}
-      <View style={styles.inputContainer}>
-        <Image
-          style={{ width: 20, height: 20 }}
-          source={require("../../../assets/mail.png")}
-        />
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor="#9E9E9E"
-          value={email}
-          onChangeText={setEmail}
-          style={styles.input}
-          editable={!loading}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
+      <Animated.View
+        entering={FadeInDown.delay(200).duration(800)}
+        style={[
+          localLoginStyles.contentContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <BlurView
+          style={[
+            commonStyles.inputContainer,
+            {
+              backgroundColor:
+                colors.dark !== true ? colors.inputBgColor : undefined, // Use `undefined` to not set any color
+            },
+          ]}
+        >
+          <MaterialIcons name="email" size={24} color={colors.text} />
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor={colors.text}
+            value={email}
+            onChangeText={setEmail}
+            style={[localLoginStyles.input, { color: colors.text }]}
+            editable={!loginLoading}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </BlurView>
+        {/* User Type Picker Styled as Input */}
+        <BlurView
+          style={[
+            commonStyles.inputContainer,
+            {
+              backgroundColor:
+                colors.dark !== true ? colors.inputBgColor : undefined, // Use `undefined` to not set any color
+            },
+          ]}
+        >
+          <FontAwesome name="user-circle" size={24} color={colors.text} />
+          <View style={localLoginStyles.pickerContainer}>
+            <Picker
+              selectedValue={userType}
+              onValueChange={(itemValue) => SetUserType(itemValue)}
+              style={[localLoginStyles.picker, { color: colors.text }]}
+              enabled={!loginLoading}
+            >
+              <Picker.Item label="Admin" value="Admin" />
+              <Picker.Item label="Tutor" value="Tutor" />
+              <Picker.Item label="Student" value="Student" />
+            </Picker>
+          </View>
+        </BlurView>
 
-      {/* User Type Picker Styled as Input */}
-      <View style={styles.inputContainer}>
-        <Image
-          style={{ width: 20, height: 20 }}
-          source={require("../../../assets/user.png")}
-        />
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={userType}
-            onValueChange={(itemValue) => SetUserType(itemValue)}
-            style={styles.picker}
-            enabled={!loading}
+        {/* Password Input */}
+        <BlurView
+          style={[
+            commonStyles.inputContainer,
+            {
+              backgroundColor:
+                colors.dark !== true ? colors.inputBgColor : undefined, // Use `undefined` to not set any color
+            },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name="onepassword"
+            size={24}
+            color={colors.text}
+          />
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor={colors.text}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={[localLoginStyles.input, { color: colors.text }]}
+            editable={!loginLoading}
+          />
+        </BlurView>
+        {/* Login Button */}
+        {loginLoading ? (
+          <ActivityIndicator size="large" color="#007bff" />
+        ) : (
+          <Animated.View>
+            <TouchableOpacity
+              style={[
+                localLoginStyles.button,
+                Platform.OS === "ios" && localLoginStyles.iosButton,
+                { backgroundColor: colors.primary },
+              ]}
+              onPress={handleLogin}
+            >
+              <Text style={localLoginStyles.buttonText}>Login</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* Forgot Password and Signup */}
+        <Animated.View>
+          <TouchableOpacity
+            style={{ marginTop: 20 }}
+            onPress={handleForgotPassword}
           >
-            <Picker.Item label="Admin" value="Admin" />
-            <Picker.Item label="Tutor" value="Tutor" />
-            <Picker.Item label="Student" value="Student" />
-          </Picker>
-        </View>
-      </View>
+            <Text style={[localLoginStyles.forgotText, { color: "#059dc0" }]}>
+              Forgot Your Password?
+            </Text>
+          </TouchableOpacity>
 
-      {/* Password Input */}
-      <View style={styles.inputContainer}>
-        <Image
-          style={{ width: 20, height: 20 }}
-          source={require("../../../assets/padlock.png")}
-        />
-        <TextInput
-          placeholder="Password"
-          placeholderTextColor="#9E9E9E"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.input}
-          editable={!loading}
-        />
-      </View>
-
-      {/* Login Button */}
-      {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <TouchableOpacity
-          style={[styles.button, Platform.OS === "ios" && styles.iosButton]}
-          onPress={handleLogin}
-        >
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Forgot Password and Signup */}
-      <View>
-        <TouchableOpacity
-          style={{ marginTop: 20 }}
-          onPress={handleForgotPassword}
-        >
-          <Text style={styles.forgotText}>Forgot Your Password?</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.noAccountText}>Don't have an account?</Text>
-
-        <TouchableOpacity style={{ paddingTop: 0 }} onPress={handleSignUpPress}>
-          <Text style={styles.signUpText}>SignUp</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          <View style={localLoginStyles.bottomTextContainer}>
+            <Text
+              style={[localLoginStyles.noAccountText, { color: colors.text }]}
+            >
+              Don't have an account?
+            </Text>
+            <TouchableOpacity onPress={handleSignUpPress}>
+              <Text style={[localLoginStyles.signUpText, { color: "#059dc0" }]}>
+                SignUp
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </Animated.View>
+    </ImageBackground>
+    // </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 30,
-    backgroundColor: "#f5f7fa",
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#187afa",
-    textAlign: "center",
-    marginBottom: 40,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-    marginBottom: 20,
-  },
-  input: {
-    flex: 1,
-    color: "#333",
-    fontSize: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  pickerContainer: {
-    flex: 1,
-    ...Platform.select({
-      ios: {
-        height: 40, // Ensure height is constrained on iOS
-        justifyContent: "center", // Center items in the container
-        paddingLeft: 10,
-        overflow: "hidden",
-      },
-      android: {
-        height: 40, // Keep height the same on Android
-        justifyContent: "center",
-      },
-    }),
-  },
-  picker: {
-    ...Platform.select({
-      ios: { color: "grey", textAlign: "left" },
-      android: {
-        color: "grey", // Keep consistent behavior on Android
-        paddingHorizontal: 10,
-      },
-    }),
-  },
-  button: {
-    backgroundColor: "#187afa",
-    padding: 12,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 10,
-  },
-  iosButton: {
-    opacity: 0.9, // Adding slight opacity for iOS feedback
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  forgotText: {
-    color: "#187afa",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  noAccountText: {
-    textAlign: "center",
-    marginTop: 4,
-    fontSize: 16,
-    color: "grey",
-  },
-  signUpText: {
-    color: "#187afa",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-});
 
 export default LoginScreen;

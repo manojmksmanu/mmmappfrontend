@@ -26,6 +26,11 @@ import { WebView } from "react-native-webview";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { useAuth } from "../../context/userContext";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { opacity } from "react-native-reanimated/lib/typescript/reanimated2/Colors";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -405,7 +410,9 @@ const RenderMessage = ({
         <Animated.View
           style={[
             styles.messageContainer,
-            isSender ? styles.senderContainer : styles.receiverContainer,
+            isSender
+              ? [styles.senderContainer, { backgroundColor: "#2b4952" }]
+              : styles.receiverContainer,
             animatedStyle,
           ]}
         >
@@ -431,31 +438,45 @@ const RenderMessage = ({
             {renderFileContent(fileType, fileUrl, message, isSender)}
           </View>
           <View style={styles.messageInfoContainer}>
-            <Text style={styles.timeText}>
+            <Text
+              style={
+                isSender
+                  ? styles.timeText
+                  : [styles.timeText, { color: "grey" }, { opacity: 1 }]
+              }
+            >
               {moment(item.createdAt).format("hh:mm A")}
             </Text>
             {isSender && item.status === "uploading" && (
-              <Image
-                source={require("../../../assets/time.png")}
-                style={styles.tickIcon}
+              <Ionicons
+                name="time-sharp"
+                size={12}
+                color="#c3f1ff"
+                style={{ marginLeft: 5 }}
               />
             )}
             {isSender && item.status === "read" && (
-              <Image
-                source={require("../../../assets/check1.png")}
-                style={styles.tickIcon}
+              <FontAwesome6
+                name="check-double"
+                size={12}
+                color="#c3f1ff"
+                style={{ marginLeft: 5 }}
               />
             )}
             {isSender && item.status === "unsent" && (
-              <Image
-                source={require("../../../assets/time.png")}
-                style={styles.tickIcon}
+              <Ionicons
+                name="time-sharp"
+                size={12}
+                color="#c3f1ff"
+                style={{ marginLeft: 5 }}
               />
             )}
             {isSender && item.status === "sent" && (
-              <Image
-                source={require("../../../assets/checkdelivered.png")}
-                style={styles.tickIcon}
+              <FontAwesome5
+                name="check"
+                size={12}
+                color="black"
+                style={{ opacity: 0.4, marginLeft: 5 }}
               />
             )}
           </View>
@@ -521,20 +542,14 @@ const RenderMessage = ({
             onPress={closeModal}
             style={styles.modalDownloadButton}
           >
-            <Image
-              style={styles.closeButtonText}
-              source={require("../../../assets/close1.png")}
-            />
+            <AntDesign name="closecircleo" size={24} color="black" />
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => downloadFile(fileUrl, item.message)}
             style={styles.closeButton}
           >
-            <Image
-              style={styles.closeButtonText}
-              source={require("../../../assets/cloud-computing.png")}
-            />
+            <AntDesign name="clouddownload" size={24} color="black" />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -564,8 +579,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   timeText: {
-    color: "#808080",
-    fontSize: 10,
+    color: "white",
+    opacity: 0.7,
+    fontSize: 9,
     marginRight: 3,
   },
   tickIcon: {
@@ -576,16 +592,6 @@ const styles = StyleSheet.create({
   },
   senderContainer: {
     alignSelf: "flex-end",
-    backgroundColor: "#dcf8c6",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
-    maxWidth: "60%",
   },
   receiverContainer: {
     alignSelf: "flex-start",
@@ -600,7 +606,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   senderMessageText: {
-    color: "#000",
+    color: "white",
     fontSize: 16,
     margin: 2,
   },

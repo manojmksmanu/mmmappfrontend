@@ -13,17 +13,32 @@
       "backgroundColor": "#ffffff"
     },
     "notifications": {
-      "icon": "./assets/notificaition.png",
-      "color": "#000000",
+      "icon": "./assets/letter-m.png",
+      "color": "#ffffff",
+      "androidMode": "default",
+      "androidCollapsedTitle": "You have new messages",
       "ios": {
-        "bundleIdentifier": "com.yourcompany.yourapp"
-      }
+        "bundleIdentifier": "com.mymegaminds.myapp"
+      },
+      "sounds": ["./assets/notificationsound1.wav"]
+    },
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#FFFFFF"
     },
     "plugins": [
       "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
       "@react-native-firebase/app",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/letter-m.png",
+          "color": "#ffffff",
+          "sounds": ["./assets/notificationsound1.wav"],
+          "mode": "production"
+        }
+      ],
       [
         "expo-build-properties",
         {
@@ -38,10 +53,7 @@
         }
       ]
     ],
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": true,
       "buildNumber": "1.0.0",
@@ -50,12 +62,11 @@
         "NSCameraUsageDescription": "This app requires access to your camera.",
         "NSDocumentDirectoryUsageDescription": "This app requires access to your documents.",
         "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library.",
-        "UIBackgroundModes": [
-          "fetch",
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "statusBarStyle": "dark"
       },
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "icon": "./assets/letter-m.png"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -68,6 +79,7 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "NOTIFICATIONS",
+        "VIBRATE",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
@@ -75,7 +87,8 @@
       ],
       "jsEngine": "jsc",
       "package": "com.mymegaminds.myapp",
-      "versionCode": 6
+      "versionCode": 8,
+      "icon": "./assets/letter-m.png"
     },
     "web": {
       "favicon": "./assets/favicon.png"

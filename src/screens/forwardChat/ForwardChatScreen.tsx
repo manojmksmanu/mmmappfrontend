@@ -40,7 +40,7 @@ const ForwarChatScreen: React.FC<{ route: any; navigation: any }> = ({
           socket.emit("forwardMessage", {
             chatId,
             messages: messagesToForward,
-            loggedUserId: loggedUser._id,
+            loggedUserId: loggedUser?._id,
             loggedUserName: loggedUser.name,
           });
         })
