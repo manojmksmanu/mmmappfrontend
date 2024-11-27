@@ -58,18 +58,14 @@ export const useConversation = () => {
           : updateChat(newMessage.chatId, newMessage, loggedUser._id);
       }
     };
-    const handleMarkMessageReceived = () => {};
-
     socket?.on("receiveMessage", handleReceiveMessage);
     socket?.on("receiveDocument", handleReceiveDocuments);
     socket?.on("forwarMessageReceived", handleForwardMessageReceived);
-    socket?.on("resultofmarkmessagetoread", handleMarkMessageReceived);
 
     return () => {
       socket?.off("receiveMessage", handleReceiveMessage);
       socket?.off("receiveDocument", handleReceiveDocuments);
       socket?.off("forwarMessageReceived", handleForwardMessageReceived);
-      socket?.off("resultofmarkmessagetoread", handleMarkMessageReceived);
     };
   }, [socket, chatsIds, updatedMessage]);
 

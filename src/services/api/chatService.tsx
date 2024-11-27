@@ -9,12 +9,11 @@ export const getAllChats = async (
   setChats: any
 ): Promise<any> => {
   const token = await useAuthStore.getState().token;
-  console.log(token);
   try {
     const response = await axios.get(`${API_URL}/chat/${userId}/chats`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    // await setChats(response.data);
+    await setChats(response.data);
   } catch (err: any) {
     console.error(
       "Failed to fetch users:",
@@ -24,7 +23,11 @@ export const getAllChats = async (
   }
 };
 
-export const getAllUsers = async (currentUserType: string,setUsers:any, token: any) => {
+export const getAllUsers = async (
+  currentUserType: string,
+  setUsers: any,
+  token: any
+) => {
   try {
     const response = await axios.get(`${API_URL}/users`, {
       params: { currentUserType },
@@ -44,7 +47,11 @@ export const getAllUsers = async (currentUserType: string,setUsers:any, token: a
   }
 };
 
-export const createGroupChat = async (users: any, groupName: string,token:any) => {
+export const createGroupChat = async (
+  users: any,
+  groupName: string,
+  token: any
+) => {
   if (!token) {
     console.error("No token found");
     return;

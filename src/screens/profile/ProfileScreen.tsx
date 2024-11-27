@@ -1,13 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   Alert,
-  ScrollView,
-  ImageBackground,
   SafeAreaView,
 } from "react-native";
 import { useNavigation, useTheme } from "@react-navigation/native";
@@ -15,6 +12,8 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useAuthStore } from "src/services/storage/authStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useChatStore } from "src/services/storage/chatStore";
+
 type RootStackParamList = {
   ChatList: undefined;
   ChatWindow: { chatId: string };
@@ -25,12 +24,16 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
 
   const { removeToken, removeLoggedUser, loggedUser } = useAuthStore();
-  const { colors, images } = useTheme();
+  const { colors } = useTheme();
+  const { clearChatData } = useChatStore();
+  const removeAllMessages = useChatStore((state) => state.removeAllMessages);
+
   const logout = async () => {
     try {
       removeToken();
       removeLoggedUser();
-      // socket?.emit("logout", loggedUser?._id);
+      clearChatData();
+      removeAllMessages();
       navigationToLogin.navigate("Login");
       console.log("Token removed successfully");
     } catch (error) {

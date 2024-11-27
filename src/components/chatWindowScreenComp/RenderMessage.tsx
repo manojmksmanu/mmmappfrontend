@@ -28,9 +28,9 @@ import * as MediaLibrary from "expo-media-library";
 import { useAuth } from "../../context/userContext";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { opacity } from "react-native-reanimated/lib/typescript/reanimated2/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useTheme } from "@react-navigation/native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -51,12 +51,11 @@ const RenderMessage = ({
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
   const [selectedFileType, setSelectedFileType] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
-  const { selectedChat } = useAuth() as {
-    selectedChat: any;
-  };
+  const { colors } = useTheme();
+  const { selectedChat } = useAuth() as { selectedChat: any };
+
   const onGestureEvent = (event: PanGestureHandlerGestureEvent) => {
     if (isSender) {
       translateX.value = Math.min(event.nativeEvent.translationX, 0);
@@ -166,8 +165,18 @@ const RenderMessage = ({
     const { fileType, fileUrl, message, senderName } = repliedMessage;
 
     return (
-      <View style={styles.renderRepyingMessage}>
-        <Text style={{ color: "#25d366" }}>
+      <View
+        style={[
+          styles.renderRepyingMessage,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <Text
+          style={[
+            { color: colors.bottomNavActivePage },
+            { fontWeight: "bold" },
+          ]}
+        >
           {senderName ? senderName : "You"}
         </Text>
         {fileType === "image/png" ||

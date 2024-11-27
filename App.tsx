@@ -7,9 +7,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { AuthProvider } from "./src/context/userContext";
-import { MessageProvider } from "./src/context/messageContext";
 import { SocketProvider } from "./src/context/useSocketContext";
-import { ChatListUpdateProvider } from "./src/context/updateChatListContext";
 import { NavigationContainer } from "@react-navigation/native";
 import FlashMessage from "react-native-flash-message";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -29,23 +27,17 @@ export default function App() {
       <SafeAreaView style={styles.container}>
         <AuthProvider>
           <SocketProvider>
-            <MessageProvider>
-              <ChatListUpdateProvider>
-                <NavigationContainer theme={theme}>
-                  <StatusBar
-                    barStyle={
-                      colorScheme === "dark" ? "light-content" : "dark-content"
-                    }
-                    backgroundColor={
-                      colorScheme === "dark" ? "#000000" : "#FFFFFF"
-                    }
-                    translucent={false}
-                  />
-                  <AppNavigator />
-                  <FlashMessage position="top" />
-                </NavigationContainer>
-              </ChatListUpdateProvider>
-            </MessageProvider>
+            <NavigationContainer theme={theme}>
+              <StatusBar
+                barStyle={
+                  colorScheme === "dark" ? "light-content" : "dark-content"
+                }
+                backgroundColor={colorScheme === "dark" ? "#000000" : "#FFFFFF"}
+                translucent={false}
+              />
+              <AppNavigator />
+              <FlashMessage position="top" />
+            </NavigationContainer>
           </SocketProvider>
         </AuthProvider>
       </SafeAreaView>

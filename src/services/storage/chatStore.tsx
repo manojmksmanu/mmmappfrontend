@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { MMKV } from "react-native-mmkv";
-import { useAuth } from "src/context/userContext";
 
 // MMKV setup
 const mmkv = new MMKV();
@@ -38,6 +37,8 @@ interface ChatStore {
   removeAllMessages: any;
   markAsRead: (chatId: string, userId: any) => void;
   setSelectedChatMMKV: (any) => void; // Action to set selected chat
+  setMessages: (chatId: string, newMessages: Message[]) => Promise<void>;
+  clearChatData: () => void;
   deleteSelectedChatMMKV: () => void; // Action to delete selected chat
 }
 
@@ -102,9 +103,7 @@ export const useChatStore = create<ChatStore>()(
           }
           return chat;
         });
-
         set({ chats: updatedChats.sort((a, b) => b.updatedAt - a.updatedAt) });
-
         const currentMessages = get().messages[chatId] || [];
         const messageExists = currentMessages.some(
           (message) => message.messageId === messageId
@@ -126,6 +125,7 @@ export const useChatStore = create<ChatStore>()(
           },
         });
       },
+
       noUnreadCountUpdateChat: (chatId, newMessage, loggedUserId) => {
         const { createdAt, messageId, ...restOfMessage } = newMessage;
         const messageWithCreatedAt = {
@@ -210,7 +210,7 @@ export const useChatStore = create<ChatStore>()(
 
             const allUsersRead = get()
               .chats.find((chat) => chat._id === chatId)
-              ?.users.every((user) => updatedReadBy.includes(user._id));
+              ?.users.every((user) => updatedReadBy.includes(user.user._id));
 
             const updatedMessageStatus = allUsersRead ? "read" : message.status;
 
@@ -243,7 +243,62 @@ export const useChatStore = create<ChatStore>()(
           console.log("Error: Chat object is null or undefined");
         }
       },
+      setMessages: async (chatId, newMessages) => {
+        try {
+          // Retrieve the existing messages from MMKV storage
+          const storedMessages = mmkvStorage.getItem("messages") || {};
+          const currentMessages = storedMessages[chatId] || [];
 
+          // Update or add messages based on `messageId`
+          const updatedMessagesMap = new Map();
+          currentMessages.forEach((msg) =>
+            updatedMessagesMap.set(msg.messageId, msg)
+          );
+
+          newMessages.forEach((newMsg) => {
+            updatedMessagesMap.set(newMsg.messageId, {
+              ...updatedMessagesMap.get(newMsg.messageId),
+              ...newMsg,
+            });
+          });
+
+          // Convert the Map back to an array and sort by `createdAt`
+          const updatedMessages = Array.from(updatedMessagesMap.values()).sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+
+          // Update the Zustand state
+          set({
+            messages: {
+              ...get().messages,
+              [chatId]: updatedMessages,
+            },
+          });
+
+          // Save the updated messages back to MMKV storage
+          mmkvStorage.setItem("messages", {
+            ...storedMessages,
+            [chatId]: updatedMessages,
+          });
+        } catch (error) {
+          console.error("Error updating messages:", error);
+        }
+      },
+
+      clearChatData: () => {
+        // Clear in Zustand state
+        set({
+          chats: [],
+          messages: {},
+          selectedChatMMKV: null,
+        });
+
+        // Clear in MMKV storage
+        mmkvStorage.removeItem("chats");
+        mmkvStorage.removeItem("messages");
+        mmkvStorage.removeItem("selectedChatMMKV");
+      },
       deleteSelectedChatMMKV: () => {
         const { selectedChatMMKV } = get();
         if (selectedChatMMKV) {

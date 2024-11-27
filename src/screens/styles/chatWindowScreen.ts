@@ -162,13 +162,13 @@ export const chatWindowStyle = StyleSheet.create({
     left: -6,
   },
   statusDotgreen: {
-    opacity: 0.5,
+    opacity: 1,
     backgroundColor: "#25D366",
     width: 10,
     height: 10,
     marginRight: 6,
-    bottom: -15,
-    right: -20,
+    bottom: -10,
+    right: -18,
     borderRadius: 100,
   },
   statusDotgrey: {

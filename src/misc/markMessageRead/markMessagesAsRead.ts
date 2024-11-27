@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { markMessageRead } from "src/services/messageService";
+import { markMessageRead } from "src/services/api/messageService";
 
 export const markMessagesAsRead = async (
   chatId: any,

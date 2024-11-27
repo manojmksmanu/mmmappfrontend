@@ -25,7 +25,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import { TextInput } from "react-native-gesture-handler";
 import BottomNavigation from "../../components/chatListScreenComp/BottomNavigation";
 import { formatMessageDate } from "src/misc/formateMessageDate/formateMessageDate";
-import { useUpdateChatList } from "src/context/updateChatListContext";
 import { useChatStore } from "src/services/storage/chatStore";
 import { useAuthStore } from "src/services/storage/authStore";
 import { getAllChats } from "src/services/api/chatService";
@@ -61,9 +60,7 @@ const ChatListScreen: React.FC = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredChats, setFilteredChats] = useState<Chat[] | undefined>([]);
   const [showType, setShowType] = useState<string>("Home");
-  const { handleFetchAgain, handleFetchAgainWhenScreenLoad, fetchLoading } =
-    useUpdateChatList();
-  const { unreadCounts } = useUpdateChatList();
+  const [serverLoadingChats, setServerLoadingChats] = useState(false);
   const { onlineUsers } = useSocket();
   const {
     chats,
@@ -79,10 +76,18 @@ const ChatListScreen: React.FC = () => {
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    const fetch = async () => {
+      await setServerLoadingChats(true);
+      await getAllChats(loggedUser._id, setChats);
+      await setServerLoadingChats(false);
+    };
+    fetch();
+  }, []);
+
   useFocusEffect(
     React.useCallback(() => {
       deleteSelectedChatMMKV();
-      console.log(selectedChatMMKV, "chatlist👌");
     }, [])
   );
 
@@ -457,38 +462,34 @@ const ChatListScreen: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            {fetchLoading && (
+
+            {serverLoadingChats && chats.length > 0 && (
+              <View>
+                <ActivityIndicator size={"small"} />
+              </View>
+            )}
+
+            {serverLoadingChats && chats.length === 0 && (
               <View
                 style={{
                   display: "flex",
+                  flexDirection: "row",
                   justifyContent: "center",
-                  alignItems: "center",
                 }}
               >
                 <View
                   style={{
-                    width: 80,
-                    padding: 10,
-                    borderRadius: 20,
-                    backgroundColor: "rgba(255, 255, 255, 0.7)",
-                    borderColor: "rgba(255, 255, 255, 0.5)",
-                    borderWidth: 1,
-                    shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: 4,
-                    },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 6,
-                    elevation: 5,
-                    alignItems: "center",
-                    marginBottom: 10,
+                    backgroundColor: colors.primary,
+                    width: 200,
+                    padding: 20,
+                    borderRadius: 100,
                   }}
                 >
-                  <ActivityIndicator size="small" />
+                  <ActivityIndicator size={"large"} />
                 </View>
               </View>
             )}
+
             {showType === "Group" && (
               <View style={{ marginBottom: 20, marginTop: 10 }}>
                 <TouchableOpacity

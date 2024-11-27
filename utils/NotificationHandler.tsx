@@ -24,7 +24,6 @@ export async function sendPushNotification(expoPushToken: string) {
 }
 
 export function handleRegistrationError(errorMessage: string) {
-  alert(errorMessage);
   throw new Error(errorMessage);
 }
 

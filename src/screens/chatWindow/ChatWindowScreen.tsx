@@ -3,13 +3,14 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
-  Animated,
   SafeAreaView,
 } from "react-native";
-import { markMessageRead } from "../../services/messageService";
+import {
+  getMessages,
+  markMessageRead,
+} from "../../services/api/messageService";
 import { useAuth } from "../../context/userContext";
 import RenderMessage from "../../components/chatWindowScreenComp/RenderMessage";
 import { getSendedType, getSenderName, getSenderStatus } from "../../misc/misc";
@@ -39,11 +40,11 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [isReplying, setIsReplying] = useState<boolean>(false);
   const textInputRef = useRef<TextInput>(null);
-  const scaleAnim = useRef(new Animated.Value(0)).current;
   const { onlineUsers, socket } = useSocket();
   const { loggedUser } = useAuthStore();
-  const { chats, selectedChatMMKV } = useChatStore();
+  const { setMessages } = useChatStore();
   const { selectedChat } = useAuth() as { selectedChat: any };
+  const { token } = useAuthStore();
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
   const [forwardMode, setForwardMode] = useState<boolean>(false);
   const [sending, setSending] = useState<any[]>([]);
@@ -59,25 +60,43 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (newMessage) => {
-        // if (newMessage.sender !== loggedUser._id) {
-        //   console.log("marked current message to read", newMessage);
-        //   markAsRead(selectedChat._id, loggedUser._id);
-        // }
+        if (newMessage.sender !== loggedUser._id) {
+          markMessageRead(selectedChat._id, loggedUser._id, token);
+          socket.emit("markMessageMMKV", {
+            userId: loggedUser._id,
+            chatId: selectedChat._id,
+          });
+        }
+        setunread(false);
       };
-      const handleReceiveDocuments = (newMessage) => {};
+      const handleReceiveDocuments = (newMessage) => {
+        if (newMessage.sender !== loggedUser._id) {
+          markMessageRead(selectedChat._id, loggedUser._id, token);
+          socket.emit("markMessageMMKV", {
+            userId: loggedUser._id,
+            chatId: selectedChat._id,
+          });
+        }
+        setunread(false);
+      };
       const handleForwardMessageReceived = (newMessage) => {};
-      const handleMarkMessageReceived = () => {};
+      const handleReceiveMarkMessageMMKV = ({ userId, chatId }) => {
+        markAsRead(chatId, userId);
+      };
 
       socket?.on("receiveMessage", handleReceiveMessage);
       socket?.on("receiveDocument", handleReceiveDocuments);
       socket?.on("forwarMessageReceived", handleForwardMessageReceived);
-      socket?.on("resultofmarkmessagetoread", handleMarkMessageReceived);
+      socket?.on("markMessageToReadRealTimeMMKV", handleReceiveMarkMessageMMKV);
 
       return () => {
         socket?.off("receiveMessage", handleReceiveMessage);
         socket?.off("receiveDocument", handleReceiveDocuments);
         socket?.off("forwarMessageReceived", handleForwardMessageReceived);
-        socket?.off("resultofmarkmessagetoread", handleMarkMessageReceived);
+        socket?.off(
+          "markMessageToReadRealTimeMMKV",
+          handleReceiveMarkMessageMMKV
+        );
       };
     }
   }, [socket]);
@@ -85,12 +104,32 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   // const removeAllMessages = useChatStore((state) => state.removeAllMessages);
   // removeAllMessages();
   useConversation();
+  useEffect(() => {
+    if (socket) {
+      socket.emit("markMessageMMKV", {
+        userId: loggedUser._id,
+        chatId: selectedChat._id,
+      });
+    }
+
+    const fetch = async () => {
+      await getMessages(
+        selectedChat._id,
+        setMessages,
+        token,
+        setLoadingMessages
+      );
+    };
+    fetch();
+    markAsRead(selectedChat._id, loggedUser._id);
+    markMessageRead(selectedChat._id, loggedUser._id, token);
+  }, []);
+
   const getUserFirstAlphabet = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
   };
 
   const handleMoreOptions = () => {
-    console.log("More options icon pressed");
     if (selectedChat?.chatType === "group") {
       navigation.navigate("GroupInfo");
     }
@@ -210,7 +249,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     try {
       updateChat(selectedChat._id, newMessage, loggedUser._id);
     } catch (err) {
-      console.log(err, ":::::");
+      console.log(err);
     }
 
     if (socket) {
@@ -339,10 +378,15 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         </View>
       </View>
 
-      {loadingMessages ? (
+      {loadingMessages && (
+        <View style={{ marginTop: 10 }}>
+          <ActivityIndicator />
+        </View>
+      )}
+
+      {loadingMessages && messages.length === 0 ? (
         <ActivityIndicator
           size="large"
-          color="#007bff"
           style={chatWindowStyle.loadingIndicator}
         />
       ) : (
@@ -406,10 +450,26 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
             style={{ marginBottom: 14, opacity: 0.8 }}
           />
         </TouchableOpacity>
-        <View style={chatWindowStyle.inputContainer}>
+        <View
+          style={[
+            chatWindowStyle.inputContainer,
+            { backgroundColor: colors.primary },
+          ]}
+        >
           {replyingMessage && (
-            <View style={chatWindowStyle.replyingMessage}>
-              <Text style={[{ color: colors.text }, { fontSize: 18 }]}>
+            <View
+              style={[
+                chatWindowStyle.replyingMessage,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text
+                style={[
+                  { color: colors.bottomNavActivePage },
+                  { fontSize: 18 },
+                  { fontWeight: "bold" },
+                ]}
+              >
                 {replyingMessage.senderName !== loggedUser.name
                   ? replyingMessage.senderName
                   : "You"}
@@ -424,7 +484,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
                 <MaterialIcons
                   name="highlight-remove"
                   size={24}
-                  color="black"
+                  color={colors.bottomNavActivePage}
                 />
               </TouchableOpacity>
             </View>
