@@ -14,6 +14,7 @@ export const getAllChats = async (
       headers: { Authorization: `Bearer ${token}` },
     });
     await setChats(response.data);
+    console.log(response.data[0])
   } catch (err: any) {
     console.error(
       "Failed to fetch users:",

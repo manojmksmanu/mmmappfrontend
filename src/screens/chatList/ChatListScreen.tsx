@@ -61,21 +61,16 @@ const ChatListScreen: React.FC = () => {
   const [filteredChats, setFilteredChats] = useState<Chat[] | undefined>([]);
   const [showType, setShowType] = useState<string>("Home");
   const [serverLoadingChats, setServerLoadingChats] = useState(false);
+
   const { onlineUsers } = useSocket();
-  const {
-    chats,
-    setChats,
-    setSelectedChatMMKV,
-    deleteSelectedChatMMKV,
-    selectedChatMMKV,
-  } = useChatStore();
+  const { chats, setChats, setSelectedChatMMKV, deleteSelectedChatMMKV } =
+    useChatStore();
   const { loggedUser } = useAuthStore();
   const { colors } = useTheme();
   const colorScheme = useColorScheme();
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
   const scaleAnim = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
     const fetch = async () => {
       await setServerLoadingChats(true);
@@ -270,25 +265,31 @@ const ChatListScreen: React.FC = () => {
                     alignItems: "center",
                   }}
                 >
-                  {item.unreadCount > 0 && (
-                    <Text
-                      style={[
-                        { color: colors.text },
-                        {
-                          backgroundColor: "#059dc0",
-                          padding: 2,
-                          paddingHorizontal: 8,
-                          borderRadius: 100,
-                        },
-                      ]}
-                    >
-                      {item.unreadCount}
-                    </Text>
-                  )}
+                  {item?.unreadCounts &&
+                    item?.unreadCounts[loggedUser._id] > 0 && (
+                      <Text
+                        style={[
+                          { color: colors.text },
+                          {
+                            backgroundColor: "#059dc0",
+                            padding: 2,
+                            paddingHorizontal: 8,
+                            borderRadius: 100,
+                          },
+                        ]}
+                      >
+                        {item?.unreadCounts[loggedUser._id]}
+                      </Text>
+                    )}
+
                   <Text
                     style={{
                       fontSize: 12,
-                      color: `${item.unreadCount > 0 ? "#059dc0" : "#999"}`,
+                      color: `${
+                        item?.unreadCounts[loggedUser._id] > 0
+                          ? "#059dc0"
+                          : "#999"
+                      }`,
                     }}
                   >
                     {loggedUser &&
@@ -366,25 +367,30 @@ const ChatListScreen: React.FC = () => {
                     alignItems: "center",
                   }}
                 >
-                  {item.unreadCount > 0 && (
-                    <Text
-                      style={[
-                        { color: colors.text },
-                        {
-                          backgroundColor: "#059dc0",
-                          padding: 2,
-                          paddingHorizontal: 8,
-                          borderRadius: 100,
-                        },
-                      ]}
-                    >
-                      {item.unreadCount}
-                    </Text>
-                  )}
+                  {item?.unreadCounts &&
+                    item?.unreadCounts[loggedUser._id] > 0 && (
+                      <Text
+                        style={[
+                          { color: colors.text },
+                          {
+                            backgroundColor: "#059dc0",
+                            padding: 2,
+                            paddingHorizontal: 8,
+                            borderRadius: 100,
+                          },
+                        ]}
+                      >
+                        {item?.unreadCounts[loggedUser._id]}
+                      </Text>
+                    )}
+
                   <Text
                     style={{
                       fontSize: 12,
-                      color: item.unreadCount > 0 ? "#059dc0" : colors.text,
+                      color:
+                        item?.unreadCounts[loggedUser._id] > 0
+                          ? "#059dc0"
+                          : colors.text,
                       opacity: 0.5,
                     }}
                   >
@@ -516,7 +522,7 @@ const ChatListScreen: React.FC = () => {
             )}
 
             <FlatList
-              data={filteredChats}
+              data={filteredChats?.sort((a, b) => b.updatedAt - a.updatedAt)}
               keyExtractor={(item) => item._id}
               renderItem={renderItem}
             />

@@ -47,7 +47,7 @@ interface Chat {
   name: string;
   latestMessage: Message;
   users: any;
-  unreadCount: number;
+  unreadCounts: any;
   isGroup: boolean;
   updatedAt: any;
 }
@@ -73,13 +73,14 @@ export const useChatStore = create<ChatStore>()(
     (set, get) => ({
       chats: [],
       messages: {},
-      selectedChatMMKV: null, // Initialize selectedChat as null
+      selectedChatMMKV: null,
       setChats: (chats) => {
         set({ chats });
         mmkvStorage.setItem("chats", chats);
       },
 
       updateChat: (chatId, newMessage, loggedUserId) => {
+        console.log("hitted this");
         const { createdAt, messageId, ...restOfMessage } = newMessage;
         const messageWithCreatedAt = {
           ...restOfMessage,
@@ -89,21 +90,29 @@ export const useChatStore = create<ChatStore>()(
 
         const updatedChats = get().chats.map((chat) => {
           if (chat._id === chatId) {
-            const incrementUnreadCount =
-              messageWithCreatedAt.sender !== loggedUserId
-                ? chat.unreadCount + 1
-                : chat.unreadCount;
+            const updatedUnreadCounts = { ...chat.unreadCounts };
 
+            if (newMessage.sender !== loggedUserId) {
+              updatedUnreadCounts[loggedUserId] =
+                (updatedUnreadCounts[loggedUserId] || 0) + 1;
+            }
             return {
               ...chat,
               latestMessage: messageWithCreatedAt,
-              unreadCount: incrementUnreadCount,
-              updatedAt: Date.now(),
+              unreadCounts: updatedUnreadCounts,
+              updatedAt: new Date().toISOString(),
             };
           }
           return chat;
         });
-        set({ chats: updatedChats.sort((a, b) => b.updatedAt - a.updatedAt) });
+
+        console.log(updatedChats[0], "0");
+
+        const sortedChats = updatedChats.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        set({ chats: sortedChats });
         const currentMessages = get().messages[chatId] || [];
         const messageExists = currentMessages.some(
           (message) => message.messageId === messageId
@@ -145,7 +154,11 @@ export const useChatStore = create<ChatStore>()(
           return chat;
         });
 
-        set({ chats: updatedChats.sort((a, b) => b.updatedAt - a.updatedAt) });
+        set({
+          chats: updatedChats.sort(
+            (a, b) => b.latestMessage.createdAt - a.latestMessage.createdAt
+          ),
+        });
 
         const currentMessages = get().messages[chatId] || [];
         const messageExists = currentMessages.some(

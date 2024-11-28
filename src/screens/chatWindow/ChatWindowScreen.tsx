@@ -42,7 +42,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const textInputRef = useRef<TextInput>(null);
   const { onlineUsers, socket } = useSocket();
   const { loggedUser } = useAuthStore();
-  const { setMessages } = useChatStore();
+  const { setMessages, chats } = useChatStore();
   const { selectedChat } = useAuth() as { selectedChat: any };
   const { token } = useAuthStore();
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
@@ -56,7 +56,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const updateChat = useChatStore((state) => state.updateChat);
   const updatedMessage = useChatStore((state) => state.updateMessage);
   const markAsRead = useChatStore((state) => state.markAsRead);
-
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (newMessage) => {
