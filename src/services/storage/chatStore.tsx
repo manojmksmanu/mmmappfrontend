@@ -209,12 +209,12 @@ export const useChatStore = create<ChatStore>()(
         const updatedChats = get().chats.map((chat) => {
           const updatedUnreadCounts = { ...chat.unreadCounts };
           if (userId) {
-            updatedUnreadCounts[userId] = 0; 
+            updatedUnreadCounts[userId] = 0;
           }
           if (chat._id === chatId) {
             return { ...chat, unreadCounts: updatedUnreadCounts };
           }
-          return chat; 
+          return chat;
         });
 
         // Update the state with the new chats
