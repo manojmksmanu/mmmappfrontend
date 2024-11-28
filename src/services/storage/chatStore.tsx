@@ -105,9 +105,6 @@ export const useChatStore = create<ChatStore>()(
           }
           return chat;
         });
-
-        console.log(updatedChats[0], "0");
-
         const sortedChats = updatedChats.sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -148,17 +145,16 @@ export const useChatStore = create<ChatStore>()(
             return {
               ...chat,
               latestMessage: messageWithCreatedAt,
-              updatedAt: Date.now(),
+              updatedAt: new Date().toISOString(),
             };
           }
           return chat;
         });
-
-        set({
-          chats: updatedChats.sort(
-            (a, b) => b.latestMessage.createdAt - a.latestMessage.createdAt
-          ),
-        });
+        const sortedChats = updatedChats.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        set({ chats: sortedChats });
 
         const currentMessages = get().messages[chatId] || [];
         const messageExists = currentMessages.some(
@@ -210,9 +206,18 @@ export const useChatStore = create<ChatStore>()(
       },
 
       markAsRead: (chatId, userId) => {
-        const updatedChats = get().chats.map((chat) =>
-          chat._id === chatId ? { ...chat, unreadCount: 0 } : chat
-        );
+        const updatedChats = get().chats.map((chat) => {
+          const updatedUnreadCounts = { ...chat.unreadCounts };
+          if (userId) {
+            updatedUnreadCounts[userId] = 0; 
+          }
+          if (chat._id === chatId) {
+            return { ...chat, unreadCounts: updatedUnreadCounts };
+          }
+          return chat; 
+        });
+
+        // Update the state with the new chats
         set({ chats: updatedChats });
 
         const updatedMessages = (get().messages[chatId] || []).map(
