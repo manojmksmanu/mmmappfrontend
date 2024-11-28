@@ -22,6 +22,7 @@ import { useUserStore } from "src/services/storage/usersStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useChatStore } from "src/services/storage/chatStore";
 
 interface User {
   id: string;
@@ -39,8 +40,8 @@ const AddUserToGroupScreen: React.FC = () => {
   const { colors } = useTheme();
   const [filteredUsers, setFilteredUsers] = useState<any[] | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
-  const { FetchChatsAgain, selectedChat, setSelectedChat } = useAuth() as {
-    FetchChatsAgain: any;
+  const { updateSingleChat } = useChatStore();
+  const { selectedChat, setSelectedChat } = useAuth() as {
     selectedChat: any;
     setSelectedChat: any;
   };
@@ -79,20 +80,14 @@ const AddUserToGroupScreen: React.FC = () => {
     setAddUserLoading(true);
     setError(null);
     try {
-      const data = await addUserToGroupChat(selectedChat?._id, selectedUsers);
-      console.log(data.chat);
-      FetchChatsAgain();
+      const data = await addUserToGroupChat(selectedChat?._id, selectedUsers,token);
       setSelectedChat(data.chat);
+      updateSingleChat(data.chat._id, data.chat);
       showMessage({
         message: `New users added in ${selectedChat?.groupName || "the group"}`,
         type: "success",
-        autoHide: false, // Disable automatic hide so user can manually dismiss
+        autoHide: true, // Disable automatic hide so user can manually dismiss
         duration: 1000, // Keep the duration for auto-hide functionality
-        renderCustomContent: () => (
-          <TouchableOpacity onPress={() => hideMessage()}>
-            <Text style={{ color: "blue" }}>Close</Text>
-          </TouchableOpacity>
-        ),
       });
       navigation.goBack();
     } catch (error: any) {
@@ -105,7 +100,6 @@ const AddUserToGroupScreen: React.FC = () => {
       });
       setError(error.message);
     } finally {
-      FetchChatsAgain();
       setAddUserLoading(false);
     }
   };

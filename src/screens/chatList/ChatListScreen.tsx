@@ -391,7 +391,6 @@ const ChatListScreen: React.FC = () => {
                         item?.unreadCounts[loggedUser._id] > 0
                           ? "#059dc0"
                           : colors.text,
-                      opacity: 0.5,
                     }}
                   >
                     {/* {loggedUser && formatMessageDate(item.latestMessage?.createdAt)} */}
@@ -522,7 +521,7 @@ const ChatListScreen: React.FC = () => {
             )}
 
             <FlatList
-              data={filteredChats?.sort((a, b) => b.updatedAt - a.updatedAt)}
+              data={filteredChats}
               keyExtractor={(item) => item._id}
               renderItem={renderItem}
             />

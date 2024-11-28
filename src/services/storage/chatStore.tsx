@@ -23,6 +23,7 @@ interface ChatStore {
   messages: Record<string, Message[]>; // Store messages as an object of arrays by chatId
   selectedChatMMKV: any | null; // To store selected chatId
   setChats: (chats: Chat[]) => void;
+  updateSingleChat: (chatId: any, updateChat: any) => void;
   updateChat: (chatId: string, newMessage: Message, loggedUserId: any) => void;
   noUnreadCountUpdateChat: (
     chatId: string,
@@ -78,16 +79,48 @@ export const useChatStore = create<ChatStore>()(
         set({ chats });
         mmkvStorage.setItem("chats", chats);
       },
+      updateSingleChat: (chatId, updatedChatData) => {
+        // Check if the chat already exists
+        const chatExists = get().chats.some((chat) => chat._id === chatId);
+
+        let updatedChats;
+
+        if (chatExists) {
+          // If the chat exists, update it
+          updatedChats = get().chats.map((chat) => {
+            if (chat._id === chatId) {
+              return {
+                ...chat,
+                ...updatedChatData, // Merge the updated data
+              };
+            }
+            return chat;
+          });
+        } else {
+          // If the chat doesn't exist, add the new chat
+          updatedChats = [...get().chats, { _id: chatId, ...updatedChatData }];
+        }
+
+        // Sort chats by `updatedAt`
+        const sortedChats = updatedChats.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+
+        // Update the Zustand state
+        set({ chats: sortedChats });
+
+        // Save the updated chats to MMKV storage
+        mmkvStorage.setItem("chats", sortedChats);
+      },
 
       updateChat: (chatId, newMessage, loggedUserId) => {
-        console.log("hitted this");
         const { createdAt, messageId, ...restOfMessage } = newMessage;
         const messageWithCreatedAt = {
           ...restOfMessage,
           createdAt: createdAt || newMessage.timestamp || Date.now(),
           messageId,
         };
-
         const updatedChats = get().chats.map((chat) => {
           if (chat._id === chatId) {
             const updatedUnreadCounts = { ...chat.unreadCounts };
@@ -123,7 +156,6 @@ export const useChatStore = create<ChatStore>()(
           ...get().messages,
           [chatId]: updatedMessages,
         });
-
         set({
           messages: {
             ...get().messages,

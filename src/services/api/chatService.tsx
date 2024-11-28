@@ -14,7 +14,6 @@ export const getAllChats = async (
       headers: { Authorization: `Bearer ${token}` },
     });
     await setChats(response.data);
-    console.log(response.data[0])
   } catch (err: any) {
     console.error(
       "Failed to fetch users:",
@@ -69,7 +68,7 @@ export const createGroupChat = async (
       }
     );
     const data = response.data;
-    return data;
+    return data.chat;
   } catch (error: any) {
     console.error("Error fetching users for chat:", error);
     const errorMessage =
@@ -78,9 +77,7 @@ export const createGroupChat = async (
   }
 };
 
-export const removeUserFromGroup = async (chatId: any, userId: any) => {
-  console.log(chatId, userId);
-  const token = await AsyncStorage.getItem("token");
+export const removeUserFromGroup = async (chatId: any, userId: any,token:any) => {
   try {
     const response = await axios.patch(
       `${API_URL}/chat/removeuserfromgroup`,
@@ -94,7 +91,6 @@ export const removeUserFromGroup = async (chatId: any, userId: any) => {
         },
       }
     );
-    console.log(response.data);
     return response.data;
   } catch (error: any) {
     console.log(error, "errorrrr");
@@ -103,9 +99,7 @@ export const removeUserFromGroup = async (chatId: any, userId: any) => {
     throw new Error(errorMessage);
   }
 };
-export const addUserToGroupChat = async (chatId: any, users: any) => {
-  console.log(chatId, users);
-  const token = await AsyncStorage.getItem("token");
+export const addUserToGroupChat = async (chatId: any, users: any,token:any) => {
   try {
     const response = await axios.patch(
       `${API_URL}/chat/adduserstogroup`,
@@ -119,19 +113,19 @@ export const addUserToGroupChat = async (chatId: any, users: any) => {
         },
       }
     );
-    console.log(response.data);
     return response.data;
   } catch (error: any) {
-    console.log(error, "errorrrr");
     console.error(error, "error");
     const errorMessage = error.response?.data?.error || "something went wrong";
     throw new Error(errorMessage);
   }
 };
 
-export const renameGroupName = async (chatId: any, newGroupName: string) => {
-  console.log(chatId, newGroupName);
-  const token = await AsyncStorage.getItem("token");
+export const renameGroupName = async (
+  chatId: any,
+  newGroupName: string,
+  token: any
+) => {
   try {
     const response = await axios.patch(
       `${API_URL}/chat/grouprename`,

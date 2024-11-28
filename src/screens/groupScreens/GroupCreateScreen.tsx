@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Image,
   Alert,
 } from "react-native";
 import { createGroupChat, getAllUsers } from "../../services/api/chatService";
@@ -18,6 +17,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useUserStore } from "src/services/storage/usersStore";
 import Entypo from "@expo/vector-icons/Entypo";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useChatStore } from "src/services/storage/chatStore";
 interface User {
   id: string;
   name: string;
@@ -34,10 +34,10 @@ const GroupCreateScreen: React.FC = () => {
   const [showNextStep, setShowNextStep] = useState<boolean>(false);
   const [groupName, setGroupName] = useState<string>(String);
   const { loggedUser, token } = useAuthStore();
+  const { updateSingleChat } = useChatStore();
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { users, setUsers } = useUserStore();
-  console.log(users);
 
   useEffect(() => {
     if (users) {
@@ -65,7 +65,7 @@ const GroupCreateScreen: React.FC = () => {
     setError(null);
     try {
       const data = await createGroupChat(allUsersForGroup, groupName, token);
-      // FetchChatsAgain();
+      updateSingleChat(data._id, data);
     } catch (error: any) {
       Alert.alert("Error", error.message);
     } finally {

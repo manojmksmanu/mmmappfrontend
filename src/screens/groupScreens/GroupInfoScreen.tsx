@@ -25,6 +25,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useAuthStore } from "src/services/storage/authStore";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useChatStore } from "src/services/storage/chatStore";
 
 const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
   navigation,
@@ -33,7 +34,7 @@ const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
     selectedChat: any;
     setSelectedChat: any;
   };
-  const { loggedUser } = useAuthStore();
+  const { loggedUser, token } = useAuthStore();
   const [renameGroup, setRenameGroup] = useState("");
   const [openRenameModal, setOpenRenameModal] = useState<boolean>(false);
   const [renameLoading, setRenameLoading] = useState<boolean>(false);
@@ -41,6 +42,8 @@ const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState(null);
   const { colors } = useTheme();
+  const { updateSingleChat } = useChatStore();
+
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
@@ -68,9 +71,9 @@ const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
     setLoading(true);
     setError(null);
     try {
-      const data = await removeUserFromGroup(selectedChat._id, item._id);
-      // FetchChatsAgain();
+      const data = await removeUserFromGroup(selectedChat._id, item._id, token);
       setSelectedChat(data.chat);
+      updateSingleChat(data.chat._id, data.chat);
       showMessage({
         message: "Success",
         description: `${item.name} removed from ${selectedChat.groupName}`,
@@ -88,7 +91,6 @@ const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
       });
       setError(error.message);
     } finally {
-      // FetchChatsAgain();
       setLoading(false);
     }
   };
@@ -97,9 +99,10 @@ const GroupInfoScreen: React.FC<{ route: any; navigation: any }> = ({
     setRenameLoading(true);
     setError(null);
     try {
-      const data = await renameGroupName(selectedChat._id, renameGroup);
+      const data = await renameGroupName(selectedChat._id, renameGroup, token);
       // FetchChatsAgain();
       setSelectedChat(data.chat);
+      updateSingleChat(data.chat._id, data.chat);
       showMessage({
         message: "Success", // Title for the success message
         description: `New name of group is ${data.chat.groupName}`, // Detailed success message (equivalent to text2)
