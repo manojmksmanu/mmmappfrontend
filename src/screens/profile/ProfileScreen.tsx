@@ -116,7 +116,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </View>
       <View style={[styles.buttonContainer, { marginHorizontal: 30 }]}>
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={[
+            styles.button,
+            { backgroundColor: colors.bottomNavActivePage },
+          ]}
           onPress={handleLogout}
         >
           <Text style={[styles.buttonText, { color: colors.text }]}>
@@ -128,7 +131,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             style={[
               styles.button,
               styles.deleteButton,
-              { backgroundColor: colors.primary },
+              { backgroundColor: colors.bottomNavActivePage },
             ]}
             onPress={deleteUserAccount}
           >

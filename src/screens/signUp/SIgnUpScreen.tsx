@@ -552,7 +552,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 localSignUpStyle.button,
-                { backgroundColor: colors.primary },
+                { backgroundColor: colors.bottomNavActivePage },
               ]}
               onPress={handleContinue}
             >
@@ -575,7 +575,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <Text
                 style={[
                   localSignUpStyle.BackbuttonText,
-                  { color: colors.primary },
+                  { color: colors.bottomNavActivePage },
                 ]}
               >
                 Back
@@ -584,7 +584,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 localSignUpStyle.buttonSignUp,
-                { backgroundColor: colors.primary },
+                { backgroundColor: colors.bottomNavActivePage },
               ]}
               onPress={validateForm2}
             >

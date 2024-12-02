@@ -412,11 +412,11 @@ const ChatListScreen: React.FC = () => {
         { paddingTop: Platform.OS === "ios" ? 50 : 0 },
       ]}
     >
-      <StatusBar
+      {/* <StatusBar
         barStyle={colorScheme === "dark" ? "dark-content" : "light-content"}
         translucent={true}
         backgroundColor="transparent" // Make background transparent so that image shows through
-      />
+      /> */}
 
       <SafeAreaView style={chatListStyle.container}>
         <View

@@ -78,11 +78,11 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       ]} // Adjust padding for status bar
       source={images?.background}
     >
-      <StatusBar
+      {/* <StatusBar
         barStyle={Platform.OS === "ios" ? "dark-content" : "light-content"}
         translucent={true}
         backgroundColor="transparent" // Make background transparent so that image shows through
-      />
+      /> */}
       <Animated.View
         entering={BounceInDown}
         exiting={FadeInDown}
@@ -181,7 +181,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               style={[
                 localLoginStyles.button,
                 Platform.OS === "ios" && localLoginStyles.iosButton,
-                { backgroundColor: colors.primary },
+                { backgroundColor: colors.bottomNavActivePage },
               ]}
               onPress={handleLogin}
             >

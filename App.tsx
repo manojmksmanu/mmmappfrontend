@@ -5,6 +5,7 @@ import {
   StyleSheet,
   StatusBar,
   useColorScheme,
+  Platform,
 } from "react-native";
 import { AuthProvider } from "./src/context/userContext";
 import { SocketProvider } from "./src/context/useSocketContext";
@@ -16,7 +17,7 @@ export default function App() {
   const colorScheme = useColorScheme();
   const [theme, setTheme] = useState(lightTheme);
   useEffect(() => {
-    setTheme(colorScheme === "dark" ? lightTheme : darkTheme);
+    setTheme(colorScheme === "dark" ? darkTheme : lightTheme);
   }, [colorScheme]);
 
   // Log to ensure theme is set properly
@@ -28,12 +29,19 @@ export default function App() {
         <AuthProvider>
           <SocketProvider>
             <NavigationContainer theme={theme}>
-              <StatusBar
+              {/* <StatusBar
                 barStyle={
                   colorScheme === "dark" ? "light-content" : "dark-content"
                 }
                 backgroundColor={colorScheme === "dark" ? "#000000" : "#FFFFFF"}
                 translucent={false}
+              /> */}
+              <StatusBar
+                barStyle={
+                  colorScheme === "dark" ? "light-content" : "dark-content"
+                } // Dynamic switching for all platforms
+                translucent={true} // Ensures transparency
+                backgroundColor="transparent" // Transparent background
               />
               <AppNavigator />
               <FlashMessage position="top" />
