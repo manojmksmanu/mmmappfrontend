@@ -309,7 +309,7 @@ const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({
                   <TouchableOpacity
                     style={[
                       localForgotStyle.button,
-                      { backgroundColor: colors.primary },
+                      { backgroundColor: colors.bottomNavActivePage },
                     ]}
                     onPress={sendOtp}
                   >
@@ -327,7 +327,7 @@ const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({
                     <TouchableOpacity
                       style={[
                         localForgotStyle.button,
-                        { backgroundColor: colors.primary },
+                        { backgroundColor: colors.bottomNavActivePage },
                       ]}
                       onPress={confirmOtp}
                     >
@@ -354,7 +354,7 @@ const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({
                         <Text
                           style={[
                             { fontWeight: "bold" },
-                            { color: colors.primary },
+                            { color: colors.bottomNavActivePage },
                           ]}
                         >
                           Resend it
@@ -374,7 +374,7 @@ const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({
                     <TouchableOpacity
                       style={[
                         localForgotStyle.button,
-                        { backgroundColor: colors.primary },
+                        { backgroundColor: colors.bottomNavActivePage },
                       ]}
                       onPress={ResetPassword}
                     >

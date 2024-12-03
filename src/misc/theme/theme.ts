@@ -12,7 +12,7 @@ export const lightTheme: Theme = {
     card: "#f8f8f8",
     border: "#e0e0e0",
     bottomNavPage: "#393939",
-    bottomNavActivePage: "#798DFF",
+    bottomNavActivePage: "#059dc0",
     notification: "#ff4081",
   },
   images: {

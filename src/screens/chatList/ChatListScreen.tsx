@@ -237,7 +237,7 @@ const ChatListScreen: React.FC = () => {
                 <Text
                   style={{
                     fontSize: 14,
-                    color: "white",
+                    color: colors.text,
                     marginBottom: 4,
                   }}
                 >
@@ -288,7 +288,7 @@ const ChatListScreen: React.FC = () => {
                       color: `${
                         item?.unreadCounts[loggedUser._id] > 0
                           ? "#059dc0"
-                          : "#999"
+                          : colors.text
                       }`,
                     }}
                   >

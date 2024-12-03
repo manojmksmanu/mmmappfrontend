@@ -420,7 +420,11 @@ const RenderMessage = ({
           style={[
             styles.messageContainer,
             isSender
-              ? [styles.senderContainer, { backgroundColor: "#2b4952" }]
+              ? [
+                  styles.senderContainer,
+                  { backgroundColor: "#416575" },
+                  // { opacity: 0.9 },
+                ]
               : styles.receiverContainer,
             animatedStyle,
           ]}
