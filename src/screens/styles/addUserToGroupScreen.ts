@@ -1,11 +1,12 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 
 export const addUserToGroupStyle = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F5F5F5", // Ensure a light background for contrast
   },
   header: {
-    paddingTop: 40,
+    paddingTop: Platform.OS === "ios" ? 50 : 40, // Adjusted padding for iOS
     paddingHorizontal: 30,
     display: "flex",
     flexDirection: "row",
@@ -25,6 +26,12 @@ export const addUserToGroupStyle = StyleSheet.create({
     paddingHorizontal: 30,
     marginVertical: 10,
     margin: 15,
+    backgroundColor: "#FFF", // Add background color to ensure it looks good
+    elevation: 3, // Add slight shadow for Android, works with iOS too
+    shadowColor: "#000", // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   input: {
     flex: 1,
@@ -50,10 +57,7 @@ export const addUserToGroupStyle = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
+    shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 1,
     elevation: 1,
@@ -90,7 +94,7 @@ export const addUserToGroupStyle = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
     marginBottom: 20,
-    margin: 20,
+    marginHorizontal: 20, // Horizontal margin for better iOS alignment
   },
   inputGroup: {
     color: "#333",

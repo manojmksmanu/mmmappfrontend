@@ -1,8 +1,9 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
+
 export const chatListStyle = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0)",
+    backgroundColor: "rgba(0, 0, 0, 0)", // Transparent background
   },
   header: {
     display: "flex",
@@ -10,7 +11,7 @@ export const chatListStyle = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 30,
-    paddingTop: 40,
+    paddingTop: Platform.OS === "ios" ? 50 : 40, // Adjusted padding for iOS
     paddingBottom: 20,
     borderBottomEndRadius: 30,
     borderBottomStartRadius: 30,
@@ -27,7 +28,12 @@ export const chatListStyle = StyleSheet.create({
     paddingHorizontal: 30,
     marginVertical: 10,
     marginHorizontal: 18,
-    marginTop: 20,
+    marginTop: Platform.OS === "ios" ? 25 : 20,
+    elevation: 3,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.01,
+    shadowRadius: 5,
   },
   content: {
     flex: 1,
@@ -84,13 +90,16 @@ export const chatListStyle = StyleSheet.create({
   username: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "#333",
   },
   time: {
     fontSize: 12,
+    color: "#A1A1A1", // A subtle grey color for time
   },
   message: {
     fontSize: 14,
     marginBottom: 4,
+    color: "#666", // Lighter grey color for message text
   },
   statusContainer: {
     flexDirection: "row",
@@ -130,6 +139,6 @@ export const chatListStyle = StyleSheet.create({
   },
   bottomNavigation: {
     height: 70,
-    marginBottom: -5,
+    marginBottom: Platform.OS === "ios" ? -5 : -10, // Adjust for iOS
   },
 });

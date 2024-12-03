@@ -460,11 +460,11 @@ const ChatListScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            {/* {serverLoadingChats && chats.length > 0 && (
+            {serverLoadingChats && chats.length > 0 && (
               <View>
                 <ActivityIndicator size={"small"} />
               </View>
-            )} */}
+            )}
 
             {serverLoadingChats && chats.length === 0 && (
               <View

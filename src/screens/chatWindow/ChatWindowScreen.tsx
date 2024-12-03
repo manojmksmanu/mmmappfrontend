@@ -377,11 +377,11 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         </View>
       </View>
 
-      {/* {loadingMessages && (
+      {loadingMessages && (
         <View style={{ marginTop: 10 }}>
           <ActivityIndicator />
         </View>
-      )} */}
+      )}
 
       {loadingMessages && messages.length === 0 ? (
         <ActivityIndicator

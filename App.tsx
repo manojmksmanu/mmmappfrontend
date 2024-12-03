@@ -19,8 +19,6 @@ export default function App() {
     setTheme(colorScheme === "dark" ? darkTheme : lightTheme);
   }, [colorScheme]);
 
-  // Log to ensure theme is set properly
-  console.log(colorScheme, "mode of phone"); // To see the phone's color scheme in the log
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -28,19 +26,12 @@ export default function App() {
         <AuthProvider>
           <SocketProvider>
             <NavigationContainer theme={theme}>
-              {/* <StatusBar
-                barStyle={
-                  colorScheme === "dark" ? "light-content" : "dark-content"
-                }
-                backgroundColor={colorScheme === "dark" ? "#000000" : "#FFFFFF"}
-                translucent={false}
-              /> */}
               <StatusBar
                 barStyle={
                   colorScheme === "dark" ? "light-content" : "dark-content"
-                } // Dynamic switching for all platforms
-                translucent={true} // Ensures transparency
-                backgroundColor="transparent" // Transparent background
+                } 
+                translucent={true} 
+                backgroundColor="transparent" 
               />
               <AppNavigator />
               <FlashMessage position="top" />
