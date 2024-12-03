@@ -55,7 +55,8 @@
     "react-native-select-dropdown": "^4.0.1",
     "react-native-webview": "13.8.6",
     "socket.io-client": "^4.8.0",
-    "zustand": "^5.0.1"
+    "zustand": "^5.0.1",
+    "expo-splash-screen": "~0.27.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.8",

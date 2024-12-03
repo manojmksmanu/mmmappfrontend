@@ -12,6 +12,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import FlashMessage from "react-native-flash-message";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { lightTheme, darkTheme } from "./src/misc/theme/theme";
+import * as SplashScreen from "expo-splash-screen";
+
 export default function App() {
   const colorScheme = useColorScheme();
   const [theme, setTheme] = useState(lightTheme);
@@ -19,6 +21,36 @@ export default function App() {
     setTheme(colorScheme === "dark" ? darkTheme : lightTheme);
   }, [colorScheme]);
 
+  useEffect(() => {
+    const prepareApp = async () => {
+      // Do the work to prepare your app.
+      // ...
+    };
+
+    const loadResources = async () => {
+      // Load the resources and data that we need.
+      // ...
+    };
+
+    const handleError = (error) => {
+      console.error("Error loading app:", error);
+    };
+
+    const handleFinish = () => {
+      SplashScreen.hideAsync();
+    };
+
+    (async () => {
+      try {
+        await SplashScreen.preventAutoHideAsync();
+        await prepareApp();
+        await loadResources();
+        handleFinish();
+      } catch (error) {
+        handleError(error);
+      }
+    })();
+  }, []);
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -29,9 +61,9 @@ export default function App() {
               <StatusBar
                 barStyle={
                   colorScheme === "dark" ? "light-content" : "dark-content"
-                } 
-                translucent={true} 
-                backgroundColor="transparent" 
+                }
+                translucent={true}
+                backgroundColor="transparent"
               />
               <AppNavigator />
               <FlashMessage position="top" />

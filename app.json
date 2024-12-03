@@ -10,7 +10,12 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "android": {
+        "adaptiveIconBackground": "#FFFFFF",
+        "resizeMode": "contain",
+        "imageResizeMode": "contain"
+      }
     },
     "notifications": {
       "icon": "./assets/letter-m.png",

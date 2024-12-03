@@ -27,6 +27,8 @@ const AppNavigator: React.FC = () => {
   const responseListener = useRef<Notifications.Subscription>();
   const { loggedUser, token } = useAuthStore();
 
+  
+
   useConversation();
   Notifications.setNotificationHandler({
     handleNotification: async () => {
@@ -80,17 +82,6 @@ const AppNavigator: React.FC = () => {
         Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, [appState, loggedUser]);
-
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState) => {};
-    const subscription = AppState.addEventListener(
-      "change",
-      handleAppStateChange
-    );
-    return () => {
-      subscription.remove();
-    };
-  }, []);
 
   return (
     <Stack.Navigator
