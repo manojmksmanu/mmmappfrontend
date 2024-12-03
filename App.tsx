@@ -5,7 +5,6 @@ import {
   StyleSheet,
   StatusBar,
   useColorScheme,
-  Platform,
 } from "react-native";
 import { AuthProvider } from "./src/context/userContext";
 import { SocketProvider } from "./src/context/useSocketContext";

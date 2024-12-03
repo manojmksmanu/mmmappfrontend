@@ -1,16 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   Alert,
-  ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { useAuth } from "../../context/userContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useTheme } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { TextInput } from "react-native-gesture-handler";
@@ -20,6 +16,7 @@ import { showMessage } from "react-native-flash-message";
 import { useAuthStore } from "src/services/storage/authStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
+import { useChatStore } from "src/services/storage/chatStore";
 
 type RootStackParamList = {
   ChatList: undefined;
@@ -33,35 +30,34 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const { loggedUser, token } = useAuthStore();
+  const { token, removeToken, removeLoggedUser } = useAuthStore();
+  const { clearChatData } = useChatStore();
   const { colors } = useTheme();
 
   const deleteUserAccount = async () => {
     try {
       setLoading(true);
-      const response = await deleteUser(email, password);
-      console.log(response, "on page");
-      await AsyncStorage.removeItem("userInfo");
-      await AsyncStorage.removeItem("chats");
-      await AsyncStorage.removeItem("token");
-      // socket?.emit("logout", loggedUser?._id);
+      const response = await deleteUser(email, password, token);
+      await clearChatData();
+      removeToken();
+      removeLoggedUser();
       setLoading(false);
       showMessage({
-        message: "Success", // Title for the success message
-        description: `${response}`, // Detailed success message (equivalent to text2)
-        type: "success", // Success message type
-        autoHide: true, // Default behavior is auto-hide, but you can adjust
-        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+        message: "Success",
+        description: `${response}`,
+        type: "success",
+        autoHide: true,
+        duration: 1000,
       });
       navigationToLogin.navigate("Login");
     } catch (err) {
       setLoading(false);
       showMessage({
-        message: "Success", // Title for the message
-        description: "Some error occurred. Try again later...", // Detailed message (equivalent to text2)
-        type: "success", // Success message type (you might want to use 'danger' for an error)
-        autoHide: true, // Default behavior is auto-hide
-        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+        message: "Success",
+        description: "Some error occurred. Try again later...",
+        type: "success",
+        autoHide: true,
+        duration: 1000,
       });
       console.log(err);
     }
@@ -70,21 +66,21 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleDeleteButton = () => {
     if (!email || !isValidEmail(email)) {
       showMessage({
-        message: "Error", // Title for the error message
-        description: "Please enter a valid email", // Detailed message (equivalent to text2)
-        type: "danger", // 'danger' for error messages
-        autoHide: true, // Default behavior is auto-hide
-        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+        message: "Error",
+        description: "Please enter a valid email",
+        type: "danger",
+        autoHide: true,
+        duration: 1000,
       });
       return;
     }
     if (!password) {
       showMessage({
-        message: "Error", // Title for the error message
-        description: "Please enter a password", // Detailed message (equivalent to text2)
-        type: "danger", // 'danger' for error messages
-        autoHide: true, // Default behavior is auto-hide
-        duration: 1000, // Optional: Adjust the duration as needed (default is 2000ms)
+        message: "Error",
+        description: "Please enter a password",
+        type: "danger",
+        autoHide: true,
+        duration: 1000,
       });
       return;
     }
@@ -172,7 +168,13 @@ const DeleteAccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               editable={!loading}
             />
           </View>
-          <TouchableOpacity style={styles.button} onPress={handleDeleteButton}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { backgroundColor: colors.bottomNavActivePage },
+            ]}
+            onPress={handleDeleteButton}
+          >
             <Text style={styles.buttonText}>Delete Account</Text>
           </TouchableOpacity>
         </View>
@@ -206,7 +208,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
     marginBottom: 20,
     paddingLeft: 20,
     borderRadius: 20,

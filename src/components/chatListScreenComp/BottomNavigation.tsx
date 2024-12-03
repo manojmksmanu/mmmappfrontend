@@ -22,7 +22,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
     await setShowType(item);
     await handleShowUsertype(item);
   };
-  const {loggedUser} = useAuthStore()
+  const { loggedUser } = useAuthStore();
   const { colors } = useTheme();
   return (
     <View
@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
   },
   navButton: {
     alignItems: "center",
+    opacity: 0.8,
   },
   activeButton: {
     // borderBottomWidth: 2,

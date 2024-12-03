@@ -7,9 +7,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Animated,
-  StatusBar,
   Platform,
-  useColorScheme,
 } from "react-native";
 import { useAuth } from "../../context/userContext";
 import {
@@ -67,14 +65,13 @@ const ChatListScreen: React.FC = () => {
     useChatStore();
   const { loggedUser } = useAuthStore();
   const { colors } = useTheme();
-  const colorScheme = useColorScheme();
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "ChatList">>();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const fetch = async () => {
       await setServerLoadingChats(true);
-      await getAllChats(loggedUser._id, setChats);
+      await getAllChats(loggedUser._id, setChats, loggedUser);
       await setServerLoadingChats(false);
     };
     fetch();
@@ -94,7 +91,7 @@ const ChatListScreen: React.FC = () => {
       useNativeDriver: true,
     }).start();
   }, []);
-  // -----filter chats by sender name ---
+  // -----filter chats by sender name --
   useEffect(() => {
     setShowType("Home");
     const searchChats = () => {
@@ -117,7 +114,7 @@ const ChatListScreen: React.FC = () => {
   }, [searchText, loggedUser, chats]);
 
   useEffect(() => {
-    getAllChats(loggedUser._id, setChats);
+    getAllChats(loggedUser._id, setChats, loggedUser);
   }, []);
 
   const handleShowUsertype = async (itemType: string) => {
@@ -269,7 +266,7 @@ const ChatListScreen: React.FC = () => {
                     item?.unreadCounts[loggedUser._id] > 0 && (
                       <Text
                         style={[
-                          { color: colors.text },
+                          { color: "white" },
                           {
                             backgroundColor: "#059dc0",
                             padding: 2,
@@ -405,6 +402,7 @@ const ChatListScreen: React.FC = () => {
         </Animated.View>
       </TouchableOpacity>
     );
+
   return (
     <View
       style={[
@@ -412,12 +410,6 @@ const ChatListScreen: React.FC = () => {
         { paddingTop: Platform.OS === "ios" ? 50 : 0 },
       ]}
     >
-      {/* <StatusBar
-        barStyle={colorScheme === "dark" ? "dark-content" : "light-content"}
-        translucent={true}
-        backgroundColor="transparent" // Make background transparent so that image shows through
-      /> */}
-
       <SafeAreaView style={chatListStyle.container}>
         <View
           style={[chatListStyle.header, { backgroundColor: colors.primary }]}
@@ -444,7 +436,7 @@ const ChatListScreen: React.FC = () => {
             <View
               style={[
                 chatListStyle.searchContainer,
-                { backgroundColor: colors.secondary },
+                { backgroundColor: colors.primary },
               ]}
             >
               <AntDesign name="search1" size={24} color={colors.text} />
@@ -468,11 +460,11 @@ const ChatListScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            {serverLoadingChats && chats.length > 0 && (
+            {/* {serverLoadingChats && chats.length > 0 && (
               <View>
                 <ActivityIndicator size={"small"} />
               </View>
-            )}
+            )} */}
 
             {serverLoadingChats && chats.length === 0 && (
               <View

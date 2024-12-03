@@ -6,13 +6,20 @@ const API_URL = `${BASE_URL}/api`;
 
 export const getAllChats = async (
   userId: string,
-  setChats: any
+  setChats: any,
+  loggedUser: any
 ): Promise<any> => {
   const token = await useAuthStore.getState().token;
   try {
-    const response = await axios.get(`${API_URL}/chat/${userId}/chats`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.get(
+      `${API_URL}/chat/${userId}/chats`,
+
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { loggedUser },
+      }
+    );
+    // console.log(response.data);
     await setChats(response.data);
   } catch (err: any) {
     console.error(
@@ -77,7 +84,11 @@ export const createGroupChat = async (
   }
 };
 
-export const removeUserFromGroup = async (chatId: any, userId: any,token:any) => {
+export const removeUserFromGroup = async (
+  chatId: any,
+  userId: any,
+  token: any
+) => {
   try {
     const response = await axios.patch(
       `${API_URL}/chat/removeuserfromgroup`,
@@ -99,7 +110,11 @@ export const removeUserFromGroup = async (chatId: any, userId: any,token:any) =>
     throw new Error(errorMessage);
   }
 };
-export const addUserToGroupChat = async (chatId: any, users: any,token:any) => {
+export const addUserToGroupChat = async (
+  chatId: any,
+  users: any,
+  token: any
+) => {
   try {
     const response = await axios.patch(
       `${API_URL}/chat/adduserstogroup`,

@@ -447,7 +447,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               />
               <View style={localSignUpStyle.pickerContainer}>
                 <Picker
-                  selectedValue={phoneCountry}
+                  selectedValue={whatsAppCountry}
                   onValueChange={handleWhatsAppCountryChange}
                   style={[localSignUpStyle.picker, { color: colors.text }]}
                 >
@@ -463,7 +463,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               </View>
               <View style={localSignUpStyle.inputWrapper}>
                 <Text style={localSignUpStyle.countryCodeText}>
-                  {phoneCountry?.phoneCode}
+                  {whatsAppCountry?.phoneCode}
                 </Text>
                 <TextInput
                   placeholder="Phone number"

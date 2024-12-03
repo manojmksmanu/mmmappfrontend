@@ -1,7 +1,6 @@
 import axios from "axios";
-
-// const API_URL = "https://mmmappbackend-yrsy.onrender.com/api";
-const API_URL = "http://10.0.2.2:5000/api";
+import { BASE_URL } from "./config";
+const API_URL = `${BASE_URL}/api`;
 export const getAllContry = async (): Promise<any> => {
   try {
     const response = await axios.get(`${API_URL}/country/get-all`);

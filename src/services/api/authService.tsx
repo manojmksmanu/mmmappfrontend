@@ -118,9 +118,9 @@ export const resetPassword = async (
 
 export const deleteUser = async (
   email: string,
-  password: string
+  password: string,
+  token: any
 ): Promise<void> => {
-  const token = await AsyncStorage.getItem("token");
   try {
     const response = await axios.post(
       `${API_URL}/api/auth/delete-account`,

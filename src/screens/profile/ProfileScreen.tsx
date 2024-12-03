@@ -122,9 +122,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           ]}
           onPress={handleLogout}
         >
-          <Text style={[styles.buttonText, { color: colors.text }]}>
-            Logout
-          </Text>
+          <Text style={[styles.buttonText, { color: "white" }]}>Logout</Text>
         </TouchableOpacity>
         {loggedUser?.userType !== "Super-Admin" && (
           <TouchableOpacity
@@ -135,7 +133,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             ]}
             onPress={deleteUserAccount}
           >
-            <Text style={[styles.buttonText, { color: colors.text }]}>
+            <Text style={[styles.buttonText, { color: "white" }]}>
               Delete Account
             </Text>
           </TouchableOpacity>
