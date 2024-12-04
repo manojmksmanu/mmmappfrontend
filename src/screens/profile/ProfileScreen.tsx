@@ -56,6 +56,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
+  const handleMyProject = async () => {
+    navigation.navigate("MyProject");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View
@@ -115,6 +119,19 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </Text>
       </View>
       <View style={[styles.buttonContainer, { marginHorizontal: 30 }]}>
+        {loggedUser && loggedUser.userType === "Student" && (
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { backgroundColor: colors.bottomNavActivePage },
+            ]}
+            onPress={handleMyProject}
+          >
+            <Text style={[styles.buttonText, { color: "white" }]}>
+              My Projects
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={[
             styles.button,

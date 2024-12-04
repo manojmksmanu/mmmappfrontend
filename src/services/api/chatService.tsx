@@ -42,7 +42,6 @@ export const getAllUsers = async (
         Authorization: `Bearer ${token}`,
       },
     });
-
     const users = response.data;
     setUsers(users);
     return users;

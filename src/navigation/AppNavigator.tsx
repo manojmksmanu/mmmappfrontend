@@ -19,6 +19,8 @@ import { registerForPushNotificationsAsync } from "../../utils/NotificationHandl
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "src/services/storage/authStore";
 import { useConversation } from "src/services/sockets/useConversation";
+import MyProject from "src/screens/projectScreens/MyProject";
+import CreateProject from "src/screens/projectScreens/CreateProject";
 const Stack = createNativeStackNavigator();
 
 const AppNavigator: React.FC = () => {
@@ -119,6 +121,16 @@ const AppNavigator: React.FC = () => {
           <Stack.Screen
             name="Profile"
             component={ProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="MyProject"
+            component={MyProject}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CreateProject"
+            component={CreateProject}
             options={{ headerShown: false }}
           />
           <Stack.Screen
