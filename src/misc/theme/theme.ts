@@ -4,7 +4,7 @@ export const lightTheme: Theme = {
   dark: false,
   colors: {
     dark: false,
-    background: "#F0F0F0",
+    background: "#e4f3f4",
     text: "#393939",
     primary: "#FFFFFF",
     secondary: "#F7F7F7",
@@ -20,25 +20,6 @@ export const lightTheme: Theme = {
   },
 };
 
-// export const darkTheme: Theme = {
-//   dark: true,
-//   colors: {
-//     dark: true,
-//     background: "#26005d",
-//     text: "#FFFFFF",
-//     primary: "#6700FC",
-//     secondary: "#340080",
-//     inputBgColor: "#DCDCDC",
-//     card: "#121212",
-//     border: "#333333",
-//     bottomNavPage: "#996FFF",
-//     bottomNavActivePage: "#FFFFFF",
-//     notification: "#ff4081",
-//   },
-//   images: {
-//     background: require("../../../assets/bg1.png"), // Replace with your image
-//   },
-// };
 export const darkTheme: Theme = {
   dark: true,
   colors: {
