@@ -22,7 +22,7 @@ const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [totalProjects, setTotalProjects] = useState<number>(0);
   const [numberOfPages, setNumberOfPages] = useState<number>(0);
   const [projects, setProjects] = useState<any[]>([]);
-  console.log(numberOfPages);
+
   useEffect(() => {
     const fetchStudentProjects = async (pageNo: number) => {
       setProjectLoading(true);
@@ -81,7 +81,7 @@ const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
             <Text style={[{ color: colors.text }, { opacity: 0.8 }]}>
               Total Projects: {totalProjects}
             </Text>
-            {numberOfPages > 0 && (
+            {/* {numberOfPages > 0 && (
               <Text
                 style={[
                   { color: colors.text },
@@ -91,7 +91,7 @@ const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
               >
                 Current Page : {pageNo}
               </Text>
-            )}
+            )} */}
           </View>
         )}
         <TouchableOpacity onPress={handleCreateProject}>
@@ -120,15 +120,98 @@ const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
               <View
                 style={[
                   styles.projectContainer,
-                  { backgroundColor: colors.primary },
+                  {
+                    backgroundColor: colors.primary, // Dynamic theme background
+                  },
                 ]}
                 key={index}
               >
-                <Text>Assignment Id: {d.assignmentId}</Text>
-                <Text>Assignment Title: {d.assignmentTitle}</Text>
-                <Text>Subject: {d.subject}</Text>
-                <Text>Pay Status: {d.status}</Text>
-                <Text>Payment: {d.sPayment}</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    marginBottom: 8,
+                    color: colors.bottomNavActivePage,
+                  }}
+                >
+                  Assignment Id:{" "}
+                  <Text
+                    style={{
+                      fontWeight: "normal",
+                      marginLeft: 5,
+                      color: colors.text,
+                    }}
+                  >
+                    {d.assignmentId}
+                  </Text>
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 5,
+                    color: colors.text,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: colors.bottomNavActivePage,
+                    }}
+                  >
+                    Assignment Title:{" "}
+                  </Text>
+                  {d.assignmentTitle}
+                </Text>
+                <Text
+                  style={{ fontSize: 14, marginBottom: 5, color: colors.text }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: colors.bottomNavActivePage,
+                    }}
+                  >
+                    Subject:{" "}
+                  </Text>
+                  {d.subject}
+                </Text>
+                <Text
+                  style={{ fontSize: 14, marginBottom: 5, color: colors.text }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: colors.bottomNavActivePage,
+                    }}
+                  >
+                    Pay Status:{" "}
+                  </Text>
+                  {d.status}
+                </Text>
+                <Text
+                  style={{ fontSize: 14, marginBottom: 5, color: colors.text }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: colors.bottomNavActivePage,
+                    }}
+                  >
+                    English Level:
+                  </Text>
+                  {d.englishLevel}
+                </Text>
+                <Text style={{ fontSize: 14, color: colors.text }}>
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: colors.bottomNavActivePage,
+                    }}
+                  >
+                    Payment:
+                  </Text>
+                  {d.sPayment}
+                </Text>
               </View>
             ))}
 
@@ -230,10 +313,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   projectContainer: {
-    padding: 30,
+    padding: 20,
     marginTop: 20,
-    borderRadius: 20,
+    borderRadius: 15,
   },
+
   createButtonContainer: {
     display: "flex",
     flexDirection: "row",

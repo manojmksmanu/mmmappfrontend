@@ -15,6 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { getAllContry, getAllSubjects } from "src/services/miscServices";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import Fontisto from "@expo/vector-icons/Fontisto";
 interface Subject {
   label: string;
   value: string;
@@ -24,22 +25,41 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [allSubjects, setAllSubjects] = useState<Subject[]>();
   const [allCountry, setAllCountry] = useState();
   const [selectedSubject, setSelectedSubject] = useState();
-   const [date, setDate] = useState(new Date());
-   const [show, setShow] = useState(false);
+  // const [date, setDate] = useState(new Date());
+  const [show, setShow] = useState(false);
+  const [documentType, setDocumentType] = useState<string[]>([]);
+  const [numberOfSlides, setNumberOfSlides] = useState<any>();
+  const [numberOfPages, setNumberOfPages] = useState<any>();
+  const [numberOfWords, setNumberOfWords] = useState<any>();
+  const [Miscellaneous, setMiscellaneous] = useState<any>();
+  const [englishLevel, setEnglishLevel] = useState<any[]>();
+  const [description, setDescription] = useState<any>();
+  const [deadline, setDeadline] = useState(new Date());
+  const [additionalNotes, setAdditionalNotes] = useState<any>();
+  const [style, setStyle] = useState<any>();
+  const onChange = (event: any, selectedDate: Date | undefined) => {
+    setShow(Platform.OS === "ios"); // Keep the picker open on iOS after selection
+    if (selectedDate) {
+      setDeadline(selectedDate);
+    }
+  };
+  console.log(englishLevel);
+  const EnglishLevel = [
+    { label: "Basic", value: "basic" },
+    { label: "Intermediate", value: "intermediate" },
+    { label: "Professional", value: "professional" },
+  ];
+  const ReferencingStyle = [
+    { label: "Apa", value: "Apa" },
+    { label: "Harvard", value: "Harvard" },
+    { label: "chicago", value: "chicago" },
+    { label: "MLA", value: "MLA" },
+    { label: "Others", value: "Others" },
+  ];
+  const showDatePicker = () => {
+    setShow(true);
+  };
 
-
-     const onChange = (event: any, selectedDate: Date | undefined) => {
-       setShow(Platform.OS === "ios"); // Keep the picker open on iOS after selection
-       if (selectedDate) {
-         setDate(selectedDate);
-       }
-     };
-
-     const showDatePicker = () => {
-       setShow(true); // Show the date picker
-     };
-
-  console.log(selectedSubject);
   const getContries = async () => {
     const data = await getAllContry();
     await setAllCountry(
@@ -69,10 +89,18 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
   useEffect(() => {
-    console.log("inside it ");
     getContries();
     getSubjects();
   }, []);
+  const handleToggle = (type: string) => {
+    setDocumentType((prevState) => {
+      if (prevState.includes(type)) {
+        return prevState.filter((item) => item !== type);
+      } else {
+        return [...prevState, type];
+      }
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,9 +154,11 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
             <TextInput
               style={[
                 styles.textInput,
+
                 { color: colors.text },
                 { backgroundColor: colors.primary },
               ]}
+              placeholderTextColor={colors.text}
               placeholder="Enter assignment title here"
             />
           </View>
@@ -181,7 +211,7 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
                 styles.labelText,
               ]}
             >
-              Select Subject
+              English Level
             </Text>
             <View
               style={[
@@ -190,26 +220,22 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
               ]}
             >
               <Picker
-                selectedValue={selectedSubject}
-                onValueChange={(itemValue) => setSelectedSubject(itemValue)}
-                style={[
-                  styles.picker,
-                  { color: colors.text },
-                  { opacity: 0.8 },
-                ]}
+                selectedValue={englishLevel}
+                onValueChange={(e) => setEnglishLevel(e)}
+                style={[styles.picker, { color: colors.text, opacity: 0.8 }]}
               >
-                {allSubjects &&
-                  allSubjects.map((subject, index) => (
-                    <Picker.Item
-                      key={index}
-                      label={subject.label}
-                      value={subject.value}
-                    />
-                  ))}
+                {EnglishLevel.map((level, index) => (
+                  <Picker.Item
+                    key={index}
+                    label={level.label}
+                    value={level.value}
+                  />
+                ))}
               </Picker>
             </View>
           </View>
-          {/* referencing style picker  */}
+          {/* Referencing Style
+           */}
           <View style={styles.dropdownContainer}>
             <Text
               style={[
@@ -219,7 +245,7 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
                 styles.labelText,
               ]}
             >
-              Select Subject
+              Referencing Style
             </Text>
             <View
               style={[
@@ -228,48 +254,375 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
               ]}
             >
               <Picker
-                selectedValue={selectedSubject}
-                onValueChange={(itemValue) => setSelectedSubject(itemValue)}
-                style={[
-                  styles.picker,
-                  { color: colors.text },
-                  { opacity: 0.8 },
-                ]}
+                selectedValue={style}
+                onValueChange={(e) => setStyle(e)}
+                style={[styles.picker, { color: colors.text, opacity: 0.8 }]}
               >
-                {allSubjects &&
-                  allSubjects.map((subject, index) => (
-                    <Picker.Item
-                      key={index}
-                      label={subject.label}
-                      value={subject.value}
-                    />
-                  ))}
+                {ReferencingStyle.map((style, index) => (
+                  <Picker.Item
+                    key={index}
+                    label={style.label}
+                    value={style.value}
+                  />
+                ))}
               </Picker>
             </View>
           </View>
-          {/* date picker  */}
-          <View>
-            <Text style={styles.label}>Select Date</Text>
 
-            {/* Button to trigger date picker */}
-            <Button title="Pick a date" onPress={showDatePicker} />
-
-            {/* Display the selected date */}
-            <Text style={styles.dateText}>
-              {date.toLocaleDateString()} {/* Format the date */}
+          {/* document type  */}
+          <View style={{ marginTop: 10 }}>
+            <Text
+              style={[
+                {
+                  color: colors.text,
+                },
+                styles.labelText,
+              ]}
+            >
+              Select Document Types
             </Text>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => handleToggle("word")}
+                style={[
+                  styles.button,
+                  documentType.includes("word") && styles.selectedButton,
+                ]}
+              >
+                {documentType.includes("word") && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    style={[
+                      styles.buttonText,
+                      documentType.includes("word") &&
+                        styles.selectedButtonText,
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.buttonText,
+                    documentType.includes("word") && styles.selectedButtonText,
+                  ]}
+                >
+                  Word
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleToggle("ppt")}
+                style={[
+                  styles.button,
+                  documentType.includes("ppt") && styles.selectedButton,
+                ]}
+              >
+                {documentType.includes("ppt") && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    style={[
+                      styles.buttonText,
+                      documentType.includes("ppt") && styles.selectedButtonText,
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.buttonText,
+                    documentType.includes("ppt") && styles.selectedButtonText,
+                  ]}
+                >
+                  PPT
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleToggle("excel")}
+                style={[
+                  styles.button,
+                  documentType.includes("excel") && styles.selectedButton,
+                ]}
+              >
+                {documentType.includes("excel") && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    style={[
+                      styles.buttonText,
+                      documentType.includes("excel") &&
+                        styles.selectedButtonText,
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.buttonText,
+                    documentType.includes("excel") && styles.selectedButtonText,
+                  ]}
+                >
+                  Excel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleToggle("miscellaneous")}
+                style={[
+                  styles.button,
+                  documentType.includes("miscellaneous") &&
+                    styles.selectedButton,
+                ]}
+              >
+                {documentType.includes("miscellaneous") && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    style={[
+                      styles.buttonText,
+                      documentType.includes("miscellaneous") &&
+                        styles.selectedButtonText,
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.buttonText,
+                    documentType.includes("miscellaneous") &&
+                      styles.selectedButtonText,
+                  ]}
+                >
+                  Miscellaneous
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+              }}
+            >
+              {documentType.includes("word") && (
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <Text
+                    style={[
+                      { opacity: 0.6 },
+                      { color: colors.text },
+                      { fontSize: 12 },
+                    ]}
+                  >
+                    Number of Pages:
+                  </Text>
+                  <TextInput
+                    style={[
+                      { backgroundColor: colors.primary },
+                      { borderRadius: 5, paddingHorizontal: 10 },
+                      { color: colors.text },
+                    ]}
+                    value={numberOfSlides}
+                    onChangeText={(text) => setNumberOfPages(text)}
+                    keyboardType="numeric"
+                  />
+                </View>
+              )}
+
+              {documentType.includes("ppt") && (
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 20,
+                  }}
+                >
+                  <Text
+                    style={[
+                      { opacity: 0.6 },
+                      { color: colors.text },
+                      { fontSize: 12 },
+                    ]}
+                  >
+                    Number of Slides:
+                  </Text>
+                  <TextInput
+                    style={[
+                      { backgroundColor: colors.primary },
+                      { borderRadius: 5, paddingHorizontal: 10 },
+                      { color: colors.text },
+                    ]}
+                    value={numberOfSlides}
+                    onChangeText={(text) => setNumberOfSlides(text)}
+                    keyboardType="numeric"
+                  />
+                </View>
+              )}
+              {documentType.includes("miscellaneous") && (
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    marginTop: 5,
+                  }}
+                >
+                  <Text
+                    style={[
+                      { opacity: 0.6 },
+                      { color: colors.text },
+                      { fontSize: 12 },
+                    ]}
+                  >
+                    Miscellaneous document:
+                  </Text>
+                  <TextInput
+                    style={[
+                      { backgroundColor: colors.primary },
+                      { borderRadius: 5, paddingHorizontal: 10 },
+                      { color: colors.text },
+                    ]}
+                    value={numberOfSlides}
+                    onChangeText={(text) => setMiscellaneous(text)}
+                  />
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* description  */}
+          <View style={styles.dropdownContainer}>
+            <Text
+              style={[
+                {
+                  color: colors.text,
+                },
+                styles.labelText,
+              ]}
+            >
+              Description
+            </Text>
+            <View
+              style={[
+                { borderRadius: 10, overflow: "hidden" },
+                { backgroundColor: colors.primary },
+              ]}
+            >
+              <TextInput
+                style={{ padding: 20, height: 100, color: colors.text }}
+                onChangeText={(text) => setDescription(text)}
+                multiline
+              />
+            </View>
+          </View>
+
+          {/* date picker  */}
+          <View style={{ marginTop: 10 }}>
+            <Text
+              style={[
+                {
+                  color: colors.text,
+                },
+                styles.labelText,
+              ]}
+            >
+              Deadline
+            </Text>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 20,
+                alignItems: "center",
+                paddingLeft: 8,
+              }}
+            >
+              {/* Button to trigger date picker */}
+              <TouchableOpacity
+                onPress={showDatePicker}
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  borderColor: colors.bottomNavActivePage,
+                  borderWidth: 1,
+                  padding: 8,
+                  paddingHorizontal: 15,
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={{ color: colors.text }}>pick a date</Text>
+                <Fontisto name="date" size={24} color={colors.text} />
+              </TouchableOpacity>
+              {/* Display the selected date */}
+              {deadline && (
+                <Text
+                  style={[
+                    { color: colors.text },
+                    {
+                      borderColor: colors.bottomNavActivePage,
+                      borderWidth: 1,
+                      padding: 8,
+                      paddingHorizontal: 15,
+                      borderRadius: 5,
+                    },
+                  ]}
+                >
+                  {deadline.toLocaleDateString()}
+                </Text>
+              )}
+            </View>
 
             {/* DateTimePicker component */}
             {show && (
               <DateTimePicker
                 testID="dateTimePicker"
-                value={date}
+                value={deadline}
                 mode="date"
                 is24Hour={true}
                 display="default"
                 onChange={onChange}
+                minimumDate={new Date()}
               />
             )}
+          </View>
+
+          {/* Additional notes  */}
+          <View style={styles.dropdownContainer}>
+            <Text
+              style={[
+                {
+                  color: colors.text,
+                },
+                styles.labelText,
+              ]}
+            >
+              Aditional Notes
+            </Text>
+            <View
+              style={[
+                { borderRadius: 10, overflow: "hidden" },
+                { backgroundColor: colors.primary },
+              ]}
+            >
+              <TextInput
+                style={{ padding: 20, height: 100, color: colors.text }}
+                onChangeText={(text) => setAdditionalNotes(text)}
+                multiline
+              />
+            </View>
           </View>
 
           {/* submit button  */}
@@ -309,13 +662,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   labelText: { opacity: 0.6, marginBottom: 5, marginLeft: 15, fontSize: 14 },
+
   dropdownContainer: {
     marginTop: 10,
   },
+
   picker: {
-    fontSize: 14, // Adjust font size for better readability
-    paddingVertical: Platform.OS === "ios" ? 12 : 0, // iOS padding to make the Picker more readable
-    paddingHorizontal: Platform.OS === "ios" ? 10 : 0, // Android uses a different internal padding
+    fontSize: 14,
+    paddingVertical: Platform.OS === "ios" ? 12 : 0,
+    paddingHorizontal: Platform.OS === "ios" ? 10 : 0,
   },
   label: {
     fontSize: 18,
@@ -324,6 +679,32 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     marginTop: 10,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  button: {
+    width: "48%",
+    padding: 10,
+    backgroundColor: "#ddd",
+    borderRadius: 5,
+    marginVertical: 5,
+    alignItems: "center",
+    paddingHorizontal: 15,
+    display: "flex",
+    flexDirection: "row",
+  },
+  selectedButton: {
+    backgroundColor: "#059dc0",
+  },
+  buttonText: {
+    fontSize: 14,
+    color: "#000",
+  },
+  selectedButtonText: {
+    color: "#fff",
   },
 });
 

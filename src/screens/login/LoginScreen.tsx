@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Platform,
   ImageBackground,
-  StatusBar,
 } from "react-native";
 import { login } from "../../services/api/authService";
 import { Picker } from "@react-native-picker/picker";
@@ -75,14 +74,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       style={[
         localLoginStyles.container,
         { paddingTop: Platform.OS === "ios" ? 50 : 0 },
-      ]} // Adjust padding for status bar
+      ]} 
       source={images?.background}
     >
-      {/* <StatusBar
-        barStyle={Platform.OS === "ios" ? "dark-content" : "light-content"}
-        translucent={true}
-        backgroundColor="transparent" // Make background transparent so that image shows through
-      /> */}
+    
       <Animated.View
         entering={BounceInDown}
         exiting={FadeInDown}

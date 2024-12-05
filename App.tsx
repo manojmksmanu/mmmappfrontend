@@ -18,7 +18,7 @@ export default function App() {
   const colorScheme = useColorScheme();
   const [theme, setTheme] = useState(lightTheme);
   useEffect(() => {
-    setTheme(colorScheme === "dark" ? darkTheme : lightTheme);
+    setTheme(colorScheme === "dark" ? darkTheme : darkTheme);
   }, [colorScheme]);
 
   useEffect(() => {
