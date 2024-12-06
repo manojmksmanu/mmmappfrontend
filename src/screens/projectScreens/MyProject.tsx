@@ -28,7 +28,7 @@ const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
       setProjectLoading(true);
       try {
         const res = await axios.get(
-          `https://backend.mymegaminds.com/api/project/get-all-in-student?page=${pageNo}&limit=5`,
+          `http://10.0.2.2:5000/api/project/get-all-in-student?page=${pageNo}&limit=5`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
