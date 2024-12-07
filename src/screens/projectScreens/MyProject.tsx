@@ -12,7 +12,6 @@ import { useTheme } from "@react-navigation/native";
 import { useAuthStore } from "src/services/storage/authStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "axios";
-import { normalizeUnits } from "moment";
 
 const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { token } = useAuthStore();
@@ -28,7 +27,7 @@ const MyProject: React.FC<{ navigation: any }> = ({ navigation }) => {
       setProjectLoading(true);
       try {
         const res = await axios.get(
-          `http://10.0.2.2:5000/api/project/get-all-in-student?page=${pageNo}&limit=5`,
+          `https://backend.mymegaminds.com/api/project/get-all-in-student?page=${pageNo}&limit=5`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

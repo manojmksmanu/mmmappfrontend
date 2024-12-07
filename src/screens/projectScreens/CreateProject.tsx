@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { getAllContry, getAllSubjects } from "src/services/miscServices";
+import { getAllSubjects } from "src/services/miscServices";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Fontisto from "@expo/vector-icons/Fontisto";
@@ -47,7 +47,6 @@ interface Data {
 const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors } = useTheme();
   const [allSubjects, setAllSubjects] = useState<Subject[]>();
-  const [allCountry, setAllCountry] = useState();
   const [subject, setSelectedSubject] = useState();
   const [assignmentTitle, setAssignmentTitle] = useState<any>("");
   const [show, setShow] = useState(false);
@@ -65,7 +64,6 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { token } = useAuthStore();
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {}, []);
   const data: Data = {
     assignmentTitle,
     subject,
@@ -173,19 +171,6 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
     setShow(true);
   };
 
-  const getContries = async () => {
-    const data = await getAllContry();
-    await setAllCountry(
-      data.map((item: any) => {
-        return {
-          _id: item._id,
-          phoneCode: item.phoneCode,
-          countryCode: item.countryCode,
-          country: item.country,
-        };
-      })
-    );
-  };
   const getSubjects = async () => {
     try {
       const data = await getAllSubjects();
@@ -202,7 +187,6 @@ const CreateProject: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
   useEffect(() => {
-    getContries();
     getSubjects();
   }, []);
   const handleToggle = (type: string) => {
@@ -806,7 +790,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     fontSize: 14,
   },
-  labelText: { opacity: 0.6, marginBottom: 5,marginLeft:5,  fontSize: 14 },
+  labelText: { opacity: 0.6, marginBottom: 5, marginLeft: 5, fontSize: 14 },
 
   dropdownContainer: {
     marginTop: 10,

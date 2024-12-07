@@ -58,7 +58,7 @@ export const studentCreateNewProject = async ({ values, token }) => {
     };
 
     const response = await fetch(
-      "http://10.0.2.2:5000/api/project/student-upload",
+      "https://backend.mymegaminds.com/api/project/student-upload",
       requestOptions
     );
 
@@ -72,7 +72,6 @@ export const studentCreateNewProject = async ({ values, token }) => {
     // Return a success indicator
     return { success: true, message: "Project created successfully!", result };
   } catch (error) {
-
     // Return a failure indicator
     return { success: false, message: "Failed to create project.", error };
   }
