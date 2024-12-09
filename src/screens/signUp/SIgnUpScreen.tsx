@@ -5,12 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
   ScrollView,
-  Alert,
   ImageBackground,
   Platform,
-  StatusBar,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import FlashMessage, { showMessage } from "react-native-flash-message"; // Import FlashMessage
@@ -26,12 +23,10 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { BlurView } from "expo-blur";
 import Entypo from "@expo/vector-icons/Entypo";
-interface Country {
-  _id: string;
-  name: string;
-  phoneCode: string;
-  countryCode: string;
-}
+import { AntDesign } from "@expo/vector-icons";
+import EULA from "src/components/loginScreenComp/EULA_TEXT";
+import PrivacyPolicy from "src/components/loginScreenComp/PrivacyPolicy";
+
 const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [userType, SetUserType] = useState<string>("Student");
   const [name, setName] = useState<string>("");
@@ -47,6 +42,30 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [showSingup, setShowSingUp] = useState<boolean>(false);
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
   const [selectedSubjects, setSelectedSubjects] = useState<any[]>([]);
+  const [showEULA, setShowEULA] = useState(false);
+  const [EULAValue, setEULAValue] = useState(false);
+  const [showPP, setShowPP] = useState(false);
+  const [PPValue, setPPValue] = useState(false);
+  const [loginActive, setLoginActive] = useState(false);
+
+  useEffect(() => {
+    setLoginActive(EULAValue && PPValue);
+  }, [PPValue, EULAValue]);
+
+  const handleAcceptEULA = () => {
+    setEULAValue(!EULAValue);
+    setShowEULA(!showEULA);
+  };
+  const handleAcceptPP = () => {
+    setPPValue(!PPValue);
+    setShowPP(!showPP);
+  };
+  const handleShowEULA = () => {
+    setShowEULA(!showEULA);
+  };
+  const handleShowPP = () => {
+    setShowPP(!showPP);
+  };
 
   const { colors, images } = useTheme();
   const getContries = async () => {
@@ -542,6 +561,87 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 </BlurView>
               </>
             )}
+
+            {/* ----EUla and privacy policy--  */}
+
+            {/* ----SHow EUla and accept it --  */}
+            <View>
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 15,
+                  marginLeft: 15,
+                }}
+                onPress={handleShowEULA}
+              >
+                {EULAValue && (
+                  <AntDesign name="checksquare" size={24} color={colors.text} />
+                )}
+                {!EULAValue && (
+                  <View
+                    style={{
+                      borderWidth: 2,
+                      width: 20,
+                      height: 20,
+                      borderRadius: 2,
+                      borderColor: colors.text,
+                    }}
+                  ></View>
+                )}
+                <Text style={{ fontWeight: "bold", color: colors.text }}>
+                  Accept Terms of Service (EULA)
+                </Text>
+              </TouchableOpacity>
+              {showEULA && (
+                <EULA
+                  showEULA={showEULA}
+                  onAccept={handleAcceptEULA}
+                  setShowEULA={setShowEULA}
+                  EULAValue={EULAValue}
+                />
+              )}
+              {/* ----SHow Privacy policy and accept it --  */}
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 15,
+                  marginLeft: 15,
+                }}
+                onPress={handleShowPP}
+              >
+                {PPValue && (
+                  <AntDesign name="checksquare" size={24} color={colors.text} />
+                )}
+                {!PPValue && (
+                  <View
+                    style={{
+                      borderWidth: 2,
+                      width: 20,
+                      height: 20,
+                      borderRadius: 2,
+                      borderColor: colors.text,
+                    }}
+                  ></View>
+                )}
+                <Text style={{ fontWeight: "bold", color: colors.text }}>
+                  Accept Privacy Policy
+                </Text>
+              </TouchableOpacity>
+              {showPP && (
+                <PrivacyPolicy
+                  visible={showPP}
+                  onAcceptPP={handleAcceptPP}
+                  setShowPP={setShowPP}
+                  PPValue={PPValue}
+                />
+              )}
+            </View>
           </View>
         )}
         {/* Signup, continue and back Button */}
@@ -585,8 +685,12 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               style={[
                 localSignUpStyle.buttonSignUp,
                 { backgroundColor: colors.bottomNavActivePage },
+                {
+                  opacity: !loginActive ? 0.4 : 1,
+                },
               ]}
-              onPress={validateForm2}
+              onPress={loginActive ? validateForm2 : () => {}}
+              disabled={!loginActive}
             >
               <Text style={[localSignUpStyle.buttonText]}>SignUp</Text>
             </TouchableOpacity>

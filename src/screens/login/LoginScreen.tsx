@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,9 @@ import { BlurView } from "expo-blur";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Animated, { BounceInDown, FadeInDown } from "react-native-reanimated";
 import { useAuthStore } from "src/services/storage/authStore";
+import EULA from "src/components/loginScreenComp/EULA_TEXT";
+import { AntDesign } from "@expo/vector-icons";
+import PrivacyPolicy from "src/components/loginScreenComp/PrivacyPolicy";
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, images } = useTheme();
@@ -30,6 +33,29 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [password, setPassword] = useState<string>("");
   const [loginLoading, setLoginLoading] = useState<boolean>(false);
   const { setToken, setLoggedUser } = useAuthStore();
+  const [showEULA, setShowEULA] = useState(false);
+  const [EULAValue, setEULAValue] = useState(false);
+  const [showPP, setShowPP] = useState(false);
+  const [PPValue, setPPValue] = useState(false);
+  const [loginActive, setLoginActive] = useState(false);
+  useEffect(() => {
+    setLoginActive(EULAValue && PPValue);
+  }, [PPValue, EULAValue]);
+
+  const handleAcceptEULA = () => {
+    setEULAValue(!EULAValue);
+    setShowEULA(!showEULA);
+  };
+  const handleAcceptPP = () => {
+    setPPValue(!PPValue);
+    setShowPP(!showPP);
+  };
+  const handleShowEULA = () => {
+    setShowEULA(!showEULA);
+  };
+  const handleShowPP = () => {
+    setShowPP(!showPP);
+  };
   const handleSignUpPress = () => {
     navigation.navigate("SignUp");
   };
@@ -74,10 +100,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       style={[
         localLoginStyles.container,
         { paddingTop: Platform.OS === "ios" ? 50 : 0 },
-      ]} 
+      ]}
       source={images?.background}
     >
-    
       <Animated.View
         entering={BounceInDown}
         exiting={FadeInDown}
@@ -167,6 +192,84 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             editable={!loginLoading}
           />
         </BlurView>
+
+        {/* ----SHow EUla and accept it --  */}
+        <TouchableOpacity
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 15,
+            marginLeft: 15,
+          }}
+          onPress={handleShowEULA}
+        >
+          {EULAValue && (
+            <AntDesign name="checksquare" size={24} color={colors.text} />
+          )}
+          {!EULAValue && (
+            <View
+              style={{
+                borderWidth: 2,
+                width: 20,
+                height: 20,
+                borderRadius: 2,
+                borderColor: colors.text,
+              }}
+            ></View>
+          )}
+          <Text style={{ fontWeight: "bold", color: colors.text }}>
+            Accept Terms of Service (EULA)
+          </Text>
+        </TouchableOpacity>
+        {showEULA && (
+          <EULA
+            showEULA={showEULA}
+            onAccept={handleAcceptEULA}
+            setShowEULA={setShowEULA}
+            EULAValue={EULAValue}
+          />
+        )}
+        {/* ----SHow Privacy policy and accept it --  */}
+        <TouchableOpacity
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 15,
+            marginLeft: 15,
+          }}
+          onPress={handleShowPP}
+        >
+          {PPValue && (
+            <AntDesign name="checksquare" size={24} color={colors.text} />
+          )}
+          {!PPValue && (
+            <View
+              style={{
+                borderWidth: 2,
+                width: 20,
+                height: 20,
+                borderRadius: 2,
+                borderColor: colors.text,
+              }}
+            ></View>
+          )}
+          <Text style={{ fontWeight: "bold", color: colors.text }}>
+            Accept Privacy Policy
+          </Text>
+        </TouchableOpacity>
+        {showPP && (
+          <PrivacyPolicy
+            visible={showPP}
+            onAcceptPP={handleAcceptPP}
+            setShowPP={setShowPP}
+            PPValue={PPValue}
+          />
+        )}
+
         {/* Login Button */}
         {loginLoading ? (
           <ActivityIndicator size="large" color="#007bff" />
@@ -176,9 +279,15 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               style={[
                 localLoginStyles.button,
                 Platform.OS === "ios" && localLoginStyles.iosButton,
-                { backgroundColor: colors.bottomNavActivePage },
+                {
+                  backgroundColor: colors.bottomNavActivePage,
+                },
+                {
+                  opacity: !loginActive ? 0.4 : 1,
+                },
               ]}
-              onPress={handleLogin}
+              onPress={loginActive ? handleLogin : () => {}}
+              disabled={!loginActive}
             >
               <Text style={localLoginStyles.buttonText}>Login</Text>
             </TouchableOpacity>
