@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  Linking,
 } from "react-native";
 import { useNavigation, useTheme } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -43,7 +44,14 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const deleteUserAccount = async () => {
     navigation.navigate("DeleteAccount");
   };
-
+  const openURL = async (url) => {
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      console.error("Don't know how to open this URL:", url);
+    }
+  };
   const handleLogout = () => {
     Alert.alert(
       "Logout",
@@ -155,6 +163,33 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         )}
+      </View>
+      <View
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          flexDirection: "row",
+          gap: 10,
+          marginTop: 30,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => openURL("https://manojmksmanu.github.io/eulammmapp/")}
+        >
+          <Text style={{ color: colors.bottomNavActivePage }}>
+            Terms of Services
+          </Text>
+        </TouchableOpacity>
+        <Text style={{ color: colors.text }}>&</Text>
+        <TouchableOpacity
+          onPress={() =>
+            openURL("https://manojmksmanu.github.io/mmmappprivacy-policy/")
+          }
+        >
+          <Text style={{ color: colors.bottomNavActivePage }}>
+            Privacy Policy
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

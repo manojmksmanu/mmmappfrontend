@@ -130,6 +130,7 @@ const PrivacyPolicy = ({ visible, onAcceptPP, setShowPP, PPValue }) => {
             await AsyncStorage.setItem("PPAccepted", "true");
             onAcceptPP();
           }}
+          color={"#059dc0"}
         />
       </View>
     </Modal>
