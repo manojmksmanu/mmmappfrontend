@@ -63,10 +63,10 @@
       "supportsTablet": true,
       "buildNumber": "1.0.0",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library.",
-        "NSCameraUsageDescription": "This app requires access to your camera.",
-        "NSDocumentDirectoryUsageDescription": "This app requires access to your documents.",
-        "NSPhotoLibraryAddUsageDescription": "This app requires permission to add documents to your photo library.",
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to view and share photos within chats and your profile.",
+        "NSCameraUsageDescription": "We require camera access to take photos for your profile and chat sharing..",
+        "NSDocumentDirectoryUsageDescription": "This app needs access to your documents to save, share, and retrieve files.",
+        "NSPhotoLibraryAddUsageDescription": "We require permission to add photos and documents to your photo library.",
         "UIBackgroundModes": ["fetch", "remote-notification"],
         "statusBarStyle": "dark"
       },
