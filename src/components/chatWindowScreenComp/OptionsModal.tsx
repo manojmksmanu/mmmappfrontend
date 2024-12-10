@@ -10,8 +10,9 @@ const OptionsModal = ({
   onReportMessage,
   onViewGroupInfo,
   selectedMessages,
+  onBlock,
 }) => {
-    const {colors}=useTheme()
+  const { colors } = useTheme();
   const { selectedChat }: { selectedChat: any } = useAuth();
   return (
     <Modal
@@ -21,11 +22,23 @@ const OptionsModal = ({
       onRequestClose={onClose}
     >
       <TouchableOpacity style={styles.overlay} onPress={onClose} />
-      <View style={[styles.modalContainer,{backgroundColor:colors.primary}]}>
-        <Text style={[styles.modalTitle,{color:colors.text}]}>Options</Text>
+      <View
+        style={[styles.modalContainer, { backgroundColor: colors.primary }]}
+      >
+        <Text style={[styles.modalTitle, { color: colors.text }]}>Options</Text>
 
         {selectedChat?.chatType === "one-to-one" && (
-          <TouchableOpacity style={[styles.optionButton]} onPress={onReportUser}>
+          <TouchableOpacity style={[styles.optionButton]} onPress={onBlock}>
+            <Text style={[styles.optionText, { color: "red" }]}>
+              Block This User
+            </Text>
+          </TouchableOpacity>
+        )}
+        {selectedChat?.chatType === "one-to-one" && (
+          <TouchableOpacity
+            style={[styles.optionButton]}
+            onPress={onReportUser}
+          >
             <Text style={styles.optionText}>Report User</Text>
           </TouchableOpacity>
         )}
@@ -38,9 +51,14 @@ const OptionsModal = ({
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.optionButton} onPress={onViewGroupInfo}>
-          <Text style={styles.optionText}>View Group Info</Text>
-        </TouchableOpacity>
+        {selectedChat.chatType !== "one-to-one" && (
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={onViewGroupInfo}
+          >
+            <Text style={styles.optionText}>View Group Info</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
           <Text style={styles.cancelText}>Cancel</Text>

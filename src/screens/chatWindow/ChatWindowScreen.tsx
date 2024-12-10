@@ -37,6 +37,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import OptionsModal from "src/components/chatWindowScreenComp/OptionsModal";
 import ReasonModal from "src/components/chatWindowScreenComp/ReasonModal";
 import { ReportMessages, ReportUser } from "src/services/api/reportService";
+import { BlockUser } from "src/services/api/blockUserService";
 
 const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -142,7 +143,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const getUserFirstAlphabet = (userType: any) => {
     return userType ? userType.charAt(0).toUpperCase() : "";
   };
-
 
   const handleSwipeLeft = (item: any) => {
     setReplyingMessage(item);
@@ -345,6 +345,26 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     );
     setReportUserModalVisible(false);
   };
+  const handleBlockUser = async () => {
+    const reportedUserId = await getSender(loggedUser, selectedChat.users)._id;
+    await BlockUser(selectedChat._id, reportedUserId, token);
+  };
+
+  console.log(selectedChat.blockedUsers);
+  const checkIfBlockedUser = () => {
+    if (
+      getSender(loggedUser, selectedChat.users)._id ===
+      selectedChat.blockedUsers[0]
+    ) {
+      return "You have blocked this user. You cannot send or receive messages. If you want to chat again, unblock the user.";
+    }
+    if (loggedUser._id === selectedChat.blockedUsers[0])
+      return `you cannot send and receive messages because ${
+        getSender(loggedUser, selectedChat.users).name
+      } block you `;
+
+    return;
+  };
 
   return (
     <SafeAreaView style={chatWindowStyle.container}>
@@ -358,6 +378,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
           onReportUser={handleReportUser}
           onViewGroupInfo={() => navigation.navigate("GroupInfo")}
           selectedMessages={selectedMessages}
+          onBlock={handleBlockUser}
         />
 
         <ReasonModal
@@ -539,95 +560,119 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
         />
       )}
 
-      <View style={[chatWindowStyle.inputMainContainer]}>
-        <TouchableOpacity onPress={sendDocument}>
-          <Ionicons
-            name="document"
-            size={28}
-            color={colors.text}
-            style={{ marginBottom: 14, opacity: 0.8 }}
-          />
-        </TouchableOpacity>
-        <View
-          style={[
-            chatWindowStyle.inputContainer,
-            { backgroundColor: colors.primary },
-          ]}
-        >
-          {replyingMessage && (
-            <View
-              style={[
-                chatWindowStyle.replyingMessage,
-                { backgroundColor: colors.background },
-              ]}
-            >
-              <Text
+      {selectedChat.blockedUsers.length === 0 ? (
+        <View style={[chatWindowStyle.inputMainContainer]}>
+          <TouchableOpacity onPress={sendDocument}>
+            <Ionicons
+              name="document"
+              size={28}
+              color={colors.text}
+              style={{ marginBottom: 14, opacity: 0.8 }}
+            />
+          </TouchableOpacity>
+          <View
+            style={[
+              chatWindowStyle.inputContainer,
+              { backgroundColor: colors.primary },
+            ]}
+          >
+            {replyingMessage && (
+              <View
                 style={[
-                  { color: colors.bottomNavActivePage },
-                  { fontSize: 18 },
-                  { fontWeight: "bold" },
+                  chatWindowStyle.replyingMessage,
+                  { backgroundColor: colors.background },
                 ]}
               >
-                {replyingMessage.senderName !== loggedUser.name
-                  ? replyingMessage.senderName
-                  : "You"}
-              </Text>
-              <Text style={[{ color: colors.text }, { fontSize: 18 }]}>
-                {replyingMessage && replyingMessage.message}
-              </Text>
-              <TouchableOpacity
-                onPress={handleRemoveReplying}
-                style={chatWindowStyle.closeReplyingMessage}
-              >
-                <MaterialIcons
-                  name="highlight-remove"
-                  size={24}
-                  color={colors.bottomNavActivePage}
-                />
-              </TouchableOpacity>
-            </View>
-          )}
-          <View>
-            <TextInput
-              ref={textInputRef}
-              value={message}
-              onChangeText={setMessage}
-              placeholder="Type a message"
-              placeholderTextColor={colors.text}
-              style={[
-                chatWindowStyle.input,
-                { backgroundColor: colors.primary },
-                {
-                  color: colors.text,
-                },
-              ]}
-              multiline
-            />
+                <Text
+                  style={[
+                    { color: colors.bottomNavActivePage },
+                    { fontSize: 18 },
+                    { fontWeight: "bold" },
+                  ]}
+                >
+                  {replyingMessage.senderName !== loggedUser.name
+                    ? replyingMessage.senderName
+                    : "You"}
+                </Text>
+                <Text style={[{ color: colors.text }, { fontSize: 18 }]}>
+                  {replyingMessage && replyingMessage.message}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleRemoveReplying}
+                  style={chatWindowStyle.closeReplyingMessage}
+                >
+                  <MaterialIcons
+                    name="highlight-remove"
+                    size={24}
+                    color={colors.bottomNavActivePage}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
             <View>
-              <TouchableOpacity onPress={sendCameraFile}>
-                <FontAwesome
-                  name="camera"
-                  size={24}
-                  color={colors.text}
-                  style={{
-                    position: "absolute",
-                    zIndex: 10,
-                    bottom: 16,
-                    right: 27,
-                    opacity: 0.8,
-                  }}
-                />
-              </TouchableOpacity>
+              <TextInput
+                ref={textInputRef}
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Type a message"
+                placeholderTextColor={colors.text}
+                style={[
+                  chatWindowStyle.input,
+                  { backgroundColor: colors.primary },
+                  {
+                    color: colors.text,
+                  },
+                ]}
+                multiline
+              />
+              <View>
+                <TouchableOpacity onPress={sendCameraFile}>
+                  <FontAwesome
+                    name="camera"
+                    size={24}
+                    color={colors.text}
+                    style={{
+                      position: "absolute",
+                      zIndex: 10,
+                      bottom: 16,
+                      right: 27,
+                      opacity: 0.8,
+                    }}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
+          <TouchableOpacity
+            onPress={sendMessageNew}
+            style={[chatWindowStyle.sendButton, { backgroundColor: "#2b4952" }]}
+          >
+            <Ionicons name="send" size={24} color="white" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={sendMessageNew}
-          style={[chatWindowStyle.sendButton, { backgroundColor: "#2b4952" }]}
+      ) : (
+        <View
+          style={[
+            chatWindowStyle.inputMainContainer,
+            { backgroundColor: colors.primary },
+            {
+              padding: 20,
+            },
+            {
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "row",
+              alignItems: "center",
+              opacity: 0.8,
+              paddingBottom: 40,
+            },
+          ]}
         >
-          <Ionicons name="send" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+          <Text style={[{ color: "red", opacity: 0.9 ,fontSize:16,textAlign:'center'}]}>
+            {checkIfBlockedUser()}
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

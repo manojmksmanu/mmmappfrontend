@@ -35,6 +35,7 @@ export const ReportMessages = async (
         },
       }
     );
+    console.log(response.data, "updated chat");
     setReportLoading(false);
     Alert.alert("Message Reported", `${response.data.message}`, [
       { text: "OK", onPress: () => console.log("OK Pressed") },
@@ -43,7 +44,7 @@ export const ReportMessages = async (
     setReason("");
   } catch (err: any) {
     if (err.response) {
-      alert(`Server Error: ${err.response.data.message || "Unknown Error"}`);
+      alert(`Server Error: ${err.response.data || "Unknown Error"}`);
     } else if (err.request) {
       alert("No response received from the server. Please try again.");
     } else {
