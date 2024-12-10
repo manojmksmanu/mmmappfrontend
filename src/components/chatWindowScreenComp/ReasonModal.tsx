@@ -6,9 +6,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 
-const ReasonModal = ({ isVisible, onClose, reasons, onSelectReason }) => {
+const ReasonModal = ({
+  isVisible,
+  onClose,
+  reasons,
+  onSelectReason,
+  reportLoading,
+}) => {
   return (
     <Modal
       animationType="fade"
@@ -17,26 +24,32 @@ const ReasonModal = ({ isVisible, onClose, reasons, onSelectReason }) => {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Select a Reason</Text>
+        {reportLoading ? (
+          <View style={styles.modalContainer}>
+            <ActivityIndicator size={"large"} />
+          </View>
+        ) : (
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Select a Reason</Text>
 
-          <FlatList
-            data={reasons}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.reasonButton}
-                onPress={() => onSelectReason(item)}
-              >
-                <Text style={styles.reasonText}>{item}</Text>
-              </TouchableOpacity>
-            )}
-          />
+            <FlatList
+              data={reasons}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.reasonButton}
+                  onPress={() => onSelectReason(item)}
+                >
+                  <Text style={styles.reasonText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
 
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </Modal>
   );

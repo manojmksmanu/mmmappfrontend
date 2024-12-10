@@ -13,7 +13,12 @@ import {
 } from "../../services/api/messageService";
 import { useAuth } from "../../context/userContext";
 import RenderMessage from "../../components/chatWindowScreenComp/RenderMessage";
-import { getSendedType, getSenderName, getSenderStatus } from "../../misc/misc";
+import {
+  getSendedType,
+  getSender,
+  getSenderName,
+  getSenderStatus,
+} from "../../misc/misc";
 import { useTheme } from "@react-navigation/native";
 import { FlatList as GestureFlatList } from "react-native-gesture-handler";
 import {
@@ -31,7 +36,7 @@ import { useConversation } from "src/services/sockets/useConversation";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import OptionsModal from "src/components/chatWindowScreenComp/OptionsModal";
 import ReasonModal from "src/components/chatWindowScreenComp/ReasonModal";
-import { ReportMessages } from "src/services/api/reportService";
+import { ReportMessages, ReportUser } from "src/services/api/reportService";
 
 const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -64,6 +69,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [isReportMessageModalVisible, setReportMessageModalVisible] =
     useState(false);
   const [isReportUserModalVisible, setReportUserModalVisible] = useState(false);
+  const [reportLoading,setReportLoading]=useState(false)
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (newMessage) => {
@@ -308,20 +314,32 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   const handleSelectReportMessageReason = async (reason) => {
     await setReason(reason);
+  
     await ReportMessages(
       loggedUser._id,
       selectedMessages,
       setSelectedMessages,
       reason,
       setReason,
-      token
+      token,
+      setReportLoading
     );
 
     setReportMessageModalVisible(false);
     console.log(`Message reported for reason: ${reason}`);
   };
-
-  const handleSelectReportUserReason = (reason) => {
+  const handleSelectReportUserReason = async (reason) => {
+    await setReason(reason);
+    await getSender(loggedUser, selectedChat.users);
+    const reportedUser = await getSender(loggedUser, selectedChat.users);
+    await ReportUser(
+      loggedUser._id,
+      reportedUser._id,
+      reason,
+      setReason,
+      token,
+      setReportLoading
+    );
     setReportUserModalVisible(false);
     console.log(`User reported for reason: ${reason}`);
   };
@@ -345,6 +363,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
           onClose={() => setReportMessageModalVisible(false)}
           reasons={reportMessageReasons}
           onSelectReason={handleSelectReportMessageReason}
+          reportLoading={reportLoading}
         />
 
         <ReasonModal
@@ -352,6 +371,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
           onClose={() => setReportUserModalVisible(false)}
           reasons={reportUserReasons}
           onSelectReason={handleSelectReportUserReason}
+          reportLoading={reportLoading}
         />
         <View
           style={{
