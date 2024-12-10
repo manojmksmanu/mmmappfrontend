@@ -29,6 +29,9 @@ import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useConversation } from "src/services/sockets/useConversation";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import OptionsModal from "src/components/chatWindowScreenComp/OptionsModal";
+import ReasonModal from "src/components/chatWindowScreenComp/ReasonModal";
+import { ReportMessages } from "src/services/api/reportService";
 
 const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -56,6 +59,11 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const updateChat = useChatStore((state) => state.updateChat);
   const updatedMessage = useChatStore((state) => state.updateMessage);
   const markAsRead = useChatStore((state) => state.markAsRead);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [isOptionsModalVisible, setOptionsModalVisible] = useState(false);
+  const [isReportMessageModalVisible, setReportMessageModalVisible] =
+    useState(false);
+  const [isReportUserModalVisible, setReportUserModalVisible] = useState(false);
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (newMessage) => {
@@ -99,10 +107,11 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       };
     }
   }, [socket]);
-
+  const [reason, setReason] = useState("");
   // const removeAllMessages = useChatStore((state) => state.removeAllMessages);
   // removeAllMessages();
   useConversation();
+
   useEffect(() => {
     if (socket) {
       socket.emit("markMessageMMKV", {
@@ -129,6 +138,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   };
 
   const handleMoreOptions = () => {
+    console.log("hello");
     if (selectedChat?.chatType === "group") {
       navigation.navigate("GroupInfo");
     }
@@ -271,11 +281,78 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     markAsRead(selectedChat._id, loggedUser._id);
   }, []);
 
+  const reportMessageReasons = ["Spam", "Harassment", "Hate Speech", "Other"];
+
+  const reportUserReasons = [
+    "Abusive Behavior",
+    "Inappropriate Content",
+    "Violation of Rules",
+    "Other",
+  ];
+
+  const handleCloseOptions = () => setOptionsModalVisible(false);
+
+  const handleOpenModal = () => {
+    setOptionsModalVisible(true);
+  };
+
+  const handleReportMessage = () => {
+    handleCloseOptions();
+    setReportMessageModalVisible(true);
+  };
+
+  const handleReportUser = () => {
+    handleCloseOptions();
+    setReportUserModalVisible(true);
+  };
+
+  const handleSelectReportMessageReason = async (reason) => {
+    await setReason(reason);
+    await ReportMessages(
+      loggedUser._id,
+      selectedMessages,
+      setSelectedMessages,
+      reason,
+      setReason,
+      token
+    );
+
+    setReportMessageModalVisible(false);
+    console.log(`Message reported for reason: ${reason}`);
+  };
+
+  const handleSelectReportUserReason = (reason) => {
+    setReportUserModalVisible(false);
+    console.log(`User reported for reason: ${reason}`);
+  };
+
   return (
     <SafeAreaView style={chatWindowStyle.container}>
       <View
         style={[chatWindowStyle.header, { backgroundColor: colors.primary }]}
       >
+        <OptionsModal
+          isVisible={isOptionsModalVisible}
+          onClose={handleCloseOptions}
+          onReportMessage={handleReportMessage}
+          onReportUser={handleReportUser}
+          onViewGroupInfo={() => navigation.navigate("GroupInfo")}
+          selectedMessages={selectedMessages}
+        />
+
+        <ReasonModal
+          isVisible={isReportMessageModalVisible}
+          onClose={() => setReportMessageModalVisible(false)}
+          reasons={reportMessageReasons}
+          onSelectReason={handleSelectReportMessageReason}
+        />
+
+        <ReasonModal
+          isVisible={isReportUserModalVisible}
+          onClose={() => setReportUserModalVisible(false)}
+          reasons={reportUserReasons}
+          onSelectReason={handleSelectReportUserReason}
+        />
         <View
           style={{
             display: "flex",
@@ -369,7 +446,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            onPress={handleMoreOptions}
+            onPress={handleOpenModal}
             style={chatWindowStyle.iconButton}
           >
             <Entypo name="dots-three-vertical" size={24} color={colors.text} />
