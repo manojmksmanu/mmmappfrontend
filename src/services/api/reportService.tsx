@@ -11,16 +11,29 @@ export const ReportMessages = async (
   token,
   setReportLoading
 ) => {
+  // Normalize `selectedMessages` to extract `messageId`
+  const normalizedMessages = selectedMessages.map((item) => {
+    if (typeof item === "string") {
+      return item;
+    } else if (typeof item === "object" && item.messageId) {
+      return item.messageId;
+    } else {
+      throw new Error("Invalid message structure in selectedMessages");
+    }
+  });
+
   if (!token) {
     console.error("No authentication token provided");
     alert("User token not found. Please log in again.");
     return;
   }
+
   setReportLoading(true);
+
   try {
     const reportData = {
       reporterId,
-      reports: selectedMessages.map((messageId) => ({
+      reports: normalizedMessages.map((messageId) => ({
         reportedMessageId: messageId,
         reason,
       })),
@@ -35,6 +48,7 @@ export const ReportMessages = async (
         },
       }
     );
+
     console.log(response.data, "updated chat");
     setReportLoading(false);
     Alert.alert("Message Reported", `${response.data.message}`, [
@@ -44,11 +58,12 @@ export const ReportMessages = async (
     setReason("");
   } catch (err: any) {
     if (err.response) {
-      alert(`Server Error: ${err.response.data || "Unknown Error"}`);
+      //   alert(`Server Error: ${err.response.data || "Unknown Error"}`);
+      alert(`Something went wrong. Please try again."}`);
     } else if (err.request) {
-      alert("No response received from the server. Please try again.");
+      alert("Something went wrong. Please try again.");
     } else {
-      alert("An error occurred while trying to report the message.");
+      alert("Something went wrong. Try again later.");
     }
   } finally {
     setReportLoading(false);
@@ -81,11 +96,12 @@ export const ReportUser = async (
     setReason("");
   } catch (err: any) {
     if (err.response) {
-      alert(`Server Error: ${err.response.data.message || "Unknown Error"}`);
+      //   alert(`Server Error: ${err.response.data.message || "Unknown Error"}`);
+      alert(`Something went wrong. Please try again."}`);
     } else if (err.request) {
-      alert("No response received from the server. Please try again.");
+      alert("Something went wrong. Please try again.");
     } else {
-      alert("An error occurred while trying to report the message.");
+      alert("Something went wrong please try again after some time.");
     }
   } finally {
     setReportLoading(false);

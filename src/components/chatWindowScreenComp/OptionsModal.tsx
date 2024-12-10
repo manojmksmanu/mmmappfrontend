@@ -44,8 +44,12 @@ const OptionsModal = ({
             loggedUser?.userType
           ) &&
           selectedChat?.blockedUsers[0] !==
-            getSender(loggedUser, selectedChat.users)._id && (
-            <TouchableOpacity style={[styles.optionButton]} onPress={onBlock}>
+            getSender(loggedUser, selectedChat.users).user._id && (
+            <TouchableOpacity
+              style={[styles.optionButton]}
+              onPress={onBlock}
+              disabled={blockUserLoading}
+            >
               <View
                 style={{
                   display: "flex",
@@ -79,8 +83,12 @@ const OptionsModal = ({
           loggedUser?.userType
         ) &&
           selectedChat?.blockedUsers[0] ===
-            getSender(loggedUser, selectedChat.users)._id && (
-            <TouchableOpacity style={[styles.optionButton]} onPress={unBlock}>
+            getSender(loggedUser, selectedChat.users).user._id && (
+            <TouchableOpacity
+              style={[styles.optionButton]}
+              onPress={unBlock}
+              disabled={blockUserLoading}
+            >
               <View
                 style={{
                   display: "flex",

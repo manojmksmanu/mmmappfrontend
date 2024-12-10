@@ -239,7 +239,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       updatedMessage
     );
   };
-
+  console.log(selectedChat.users);
+  console.log(selectedChat.blockedUsers, "blocker users");
   const sendMessageNew = async () => {
     if (!message) return;
     setReplyingMessage("");
@@ -321,7 +322,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     handleCloseOptions();
     setReportUserModalVisible(true);
   };
-
   const handleSelectReportMessageReason = async (reason) => {
     await setReason(reason);
     await ReportMessages(
@@ -333,7 +333,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       token,
       setReportLoading
     );
-    setOptionsModalVisible(false);
+    setReportMessageModalVisible(false);
   };
   const handleSelectReportUserReason = async (reason) => {
     await setReason(reason);
@@ -349,9 +349,10 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     );
     setReportUserModalVisible(false);
   };
-  
+
   const handleBlockUser = async () => {
-    const reportedUserId = await getSender(loggedUser, selectedChat.users)._id;
+    const reportedUserId = await getSender(loggedUser, selectedChat.users).user
+      ._id;
     await BlockUser(
       selectedChat._id,
       reportedUserId,
@@ -363,7 +364,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     setOptionsModalVisible(false);
   };
   const handleUnBlockUser = async () => {
-    const reportedUserId = await getSender(loggedUser, selectedChat.users)._id;
+    const reportedUserId = await getSender(loggedUser, selectedChat.users).user
+      ._id;
     await UnBlockUser(
       selectedChat._id,
       reportedUserId,
@@ -377,16 +379,16 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   const checkIfBlockedUser = () => {
     if (
-      getSender(loggedUser, selectedChat.users)._id ===
-      selectedChat.blockedUsers[0]
+      getSender(loggedUser, selectedChat.users).user._id ===
+      selectedChat?.blockedUsers[0]
     ) {
       return "You have blocked this user. You cannot send or receive messages. If you want to chat again, unblock the user.";
     }
-    if (loggedUser._id === selectedChat.blockedUsers[0])
+    if (loggedUser._id === selectedChat.blockedUsers[0]) {
       return `you cannot send and receive messages because ${
-        getSender(loggedUser, selectedChat.users).name
-      } block you `;
-
+        getSender(loggedUser, selectedChat.users).user.name
+      } blocked you `;
+    }
     return;
   };
 
