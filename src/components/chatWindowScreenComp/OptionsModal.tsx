@@ -1,7 +1,16 @@
 import { useTheme } from "@react-navigation/native";
 import React from "react";
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { useAuth } from "src/context/userContext";
+import { getSender } from "src/misc/misc";
+import { useAuthStore } from "src/services/storage/authStore";
 
 const OptionsModal = ({
   isVisible,
@@ -11,9 +20,12 @@ const OptionsModal = ({
   onViewGroupInfo,
   selectedMessages,
   onBlock,
+  unBlock,
+  blockUserLoading,
 }) => {
   const { colors } = useTheme();
   const { selectedChat }: { selectedChat: any } = useAuth();
+  const { loggedUser }: { loggedUser: any } = useAuthStore();
   return (
     <Modal
       animationType="slide"
@@ -27,13 +39,77 @@ const OptionsModal = ({
       >
         <Text style={[styles.modalTitle, { color: colors.text }]}>Options</Text>
 
-        {selectedChat?.chatType === "one-to-one" && (
-          <TouchableOpacity style={[styles.optionButton]} onPress={onBlock}>
-            <Text style={[styles.optionText, { color: "red" }]}>
-              Block This User
-            </Text>
-          </TouchableOpacity>
-        )}
+        {selectedChat?.chatType === "one-to-one" &&
+          ["Sub-Admin", "Admin", "Co-Admin", "Super-Admin"].includes(
+            loggedUser?.userType
+          ) &&
+          selectedChat?.blockedUsers[0] !==
+            getSender(loggedUser, selectedChat.users)._id && (
+            <TouchableOpacity style={[styles.optionButton]} onPress={onBlock}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                {blockUserLoading && (
+                  <ActivityIndicator
+                    color={"red"}
+                    style={{
+                      backgroundColor: colors.primary,
+                      padding: 5,
+                      borderRadius: 10,
+                    }}
+                  />
+                )}
+                {!blockUserLoading ? (
+                  <Text style={[styles.optionText, { color: "red" }]}>
+                    Block This User
+                  </Text>
+                ) : (
+                  <Text style={[styles.optionText, { color: "red" }]}>
+                    Wait Please....
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
+        {["Sub-Admin", "Admin", "Co-Admin", "Super-Admin"].includes(
+          loggedUser?.userType
+        ) &&
+          selectedChat?.blockedUsers[0] ===
+            getSender(loggedUser, selectedChat.users)._id && (
+            <TouchableOpacity style={[styles.optionButton]} onPress={unBlock}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                {blockUserLoading && (
+                  <ActivityIndicator
+                    color={"red"}
+                    style={{
+                      backgroundColor: colors.primary,
+                      padding: 5,
+                      borderRadius: 10,
+                    }}
+                  />
+                )}
+                {!blockUserLoading ? (
+                  <Text style={[styles.optionText, { color: "red" }]}>
+                    UnBlock This User
+                  </Text>
+                ) : (
+                  <Text style={[styles.optionText, { color: "red" }]}>
+                    Wait Please....
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
         {selectedChat?.chatType === "one-to-one" && (
           <TouchableOpacity
             style={[styles.optionButton]}

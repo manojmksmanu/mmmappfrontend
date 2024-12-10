@@ -37,7 +37,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import OptionsModal from "src/components/chatWindowScreenComp/OptionsModal";
 import ReasonModal from "src/components/chatWindowScreenComp/ReasonModal";
 import { ReportMessages, ReportUser } from "src/services/api/reportService";
-import { BlockUser } from "src/services/api/blockUserService";
+import { BlockUser, UnBlockUser } from "src/services/api/blockUserService";
 
 const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -63,6 +63,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const { colors } = useTheme();
   const messages = useChatStore((state) => state.messages[chatId]);
   const updateChat = useChatStore((state) => state.updateChat);
+  const updateSingleChat = useChatStore((state) => state.updateSingleChat);
   const updatedMessage = useChatStore((state) => state.updateMessage);
   const markAsRead = useChatStore((state) => state.markAsRead);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -71,6 +72,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     useState(false);
   const [isReportUserModalVisible, setReportUserModalVisible] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
+  const [blockUserLoading, setBlockUserLoading] = useState(false);
+
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (newMessage) => {
@@ -115,6 +118,9 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     }
   }, [socket]);
   const [reason, setReason] = useState("");
+  const { setSelectedChat } = useAuth() as {
+    setSelectedChat: any;
+  };
   // const removeAllMessages = useChatStore((state) => state.removeAllMessages);
   // removeAllMessages();
   useConversation();
@@ -318,7 +324,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   const handleSelectReportMessageReason = async (reason) => {
     await setReason(reason);
-
     await ReportMessages(
       loggedUser._id,
       selectedMessages,
@@ -328,8 +333,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       token,
       setReportLoading
     );
-
-    setReportMessageModalVisible(false);
+    setOptionsModalVisible(false);
   };
   const handleSelectReportUserReason = async (reason) => {
     await setReason(reason);
@@ -345,12 +349,32 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     );
     setReportUserModalVisible(false);
   };
+  
   const handleBlockUser = async () => {
     const reportedUserId = await getSender(loggedUser, selectedChat.users)._id;
-    await BlockUser(selectedChat._id, reportedUserId, token);
+    await BlockUser(
+      selectedChat._id,
+      reportedUserId,
+      token,
+      updateSingleChat,
+      setSelectedChat,
+      setBlockUserLoading
+    );
+    setOptionsModalVisible(false);
+  };
+  const handleUnBlockUser = async () => {
+    const reportedUserId = await getSender(loggedUser, selectedChat.users)._id;
+    await UnBlockUser(
+      selectedChat._id,
+      reportedUserId,
+      token,
+      updateSingleChat,
+      setSelectedChat,
+      setBlockUserLoading
+    );
+    setOptionsModalVisible(false);
   };
 
-  console.log(selectedChat.blockedUsers);
   const checkIfBlockedUser = () => {
     if (
       getSender(loggedUser, selectedChat.users)._id ===
@@ -379,6 +403,8 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
           onViewGroupInfo={() => navigation.navigate("GroupInfo")}
           selectedMessages={selectedMessages}
           onBlock={handleBlockUser}
+          unBlock={handleUnBlockUser}
+          blockUserLoading={blockUserLoading}
         />
 
         <ReasonModal
@@ -411,21 +437,21 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
             <View style={chatWindowStyle.profileCircle}>
               {selectedChat && (
                 <>
-                  {selectedChat.chatType === "one-to-one" && (
+                  {selectedChat?.chatType === "one-to-one" && (
                     <Text style={chatWindowStyle.profileText}>
                       {getUserFirstAlphabet(
                         getSendedType(loggedUser, selectedChat.users)
                       )}
                     </Text>
                   )}
-                  {selectedChat.chatType === "group" && (
+                  {selectedChat?.chatType === "group" && (
                     <Text style={chatWindowStyle.profileText}>
                       {getUserFirstAlphabet(selectedChat.groupName)}
                     </Text>
                   )}
                 </>
               )}
-              {selectedChat.chatType === "one-to-one" && (
+              {selectedChat?.chatType === "one-to-one" && (
                 <View style={chatWindowStyle.statusContainer}>
                   {loggedUser &&
                   getSenderStatus(
@@ -442,7 +468,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
             </View>
 
             <View style={chatWindowStyle.textContainer}>
-              {selectedChat.chatType === "one-to-one" ? (
+              {selectedChat?.chatType === "one-to-one" ? (
                 <Text
                   style={[chatWindowStyle.usernameText, { color: colors.text }]}
                 >
@@ -456,7 +482,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
                 </Text>
               )}
 
-              {selectedChat.chatType === "one-to-one" && (
+              {selectedChat?.chatType === "one-to-one" && (
                 <Text
                   style={[
                     chatWindowStyle.statusText,
@@ -668,7 +694,11 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
             },
           ]}
         >
-          <Text style={[{ color: "red", opacity: 0.9 ,fontSize:16,textAlign:'center'}]}>
+          <Text
+            style={[
+              { color: "red", opacity: 0.9, fontSize: 16, textAlign: "center" },
+            ]}
+          >
             {checkIfBlockedUser()}
           </Text>
         </View>
