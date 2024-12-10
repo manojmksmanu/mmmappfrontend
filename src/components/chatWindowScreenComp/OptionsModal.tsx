@@ -1,3 +1,4 @@
+import { useTheme } from "@react-navigation/native";
 import React from "react";
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from "react-native";
 import { useAuth } from "src/context/userContext";
@@ -10,8 +11,8 @@ const OptionsModal = ({
   onViewGroupInfo,
   selectedMessages,
 }) => {
+    const {colors}=useTheme()
   const { selectedChat }: { selectedChat: any } = useAuth();
-  console.log(selectedChat);
   return (
     <Modal
       animationType="slide"
@@ -20,11 +21,11 @@ const OptionsModal = ({
       onRequestClose={onClose}
     >
       <TouchableOpacity style={styles.overlay} onPress={onClose} />
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>Options</Text>
+      <View style={[styles.modalContainer,{backgroundColor:colors.primary}]}>
+        <Text style={[styles.modalTitle,{color:colors.text}]}>Options</Text>
 
         {selectedChat?.chatType === "one-to-one" && (
-          <TouchableOpacity style={styles.optionButton} onPress={onReportUser}>
+          <TouchableOpacity style={[styles.optionButton]} onPress={onReportUser}>
             <Text style={styles.optionText}>Report User</Text>
           </TouchableOpacity>
         )}
@@ -52,7 +53,7 @@ const OptionsModal = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
   modalContainer: {
     position: "absolute",

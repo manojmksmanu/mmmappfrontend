@@ -1,3 +1,4 @@
+import { useTheme } from "@react-navigation/native";
 import React from "react";
 import {
   View,
@@ -16,6 +17,7 @@ const ReasonModal = ({
   onSelectReason,
   reportLoading,
 }) => {
+  const { colors } = useTheme();
   return (
     <Modal
       animationType="fade"
@@ -25,12 +27,18 @@ const ReasonModal = ({
     >
       <View style={styles.overlay}>
         {reportLoading ? (
-          <View style={styles.modalContainer}>
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.primary }]}
+          >
             <ActivityIndicator size={"large"} />
           </View>
         ) : (
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Select a Reason</Text>
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.primary }]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Select a Reason
+            </Text>
 
             <FlatList
               data={reasons}
@@ -64,7 +72,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: "80%",
-    backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
     alignItems: "center",

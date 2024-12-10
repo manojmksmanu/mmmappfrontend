@@ -69,7 +69,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const [isReportMessageModalVisible, setReportMessageModalVisible] =
     useState(false);
   const [isReportUserModalVisible, setReportUserModalVisible] = useState(false);
-  const [reportLoading,setReportLoading]=useState(false)
+  const [reportLoading, setReportLoading] = useState(false);
   useEffect(() => {
     if (socket) {
       const handleReceiveMessage = (newMessage) => {
@@ -143,12 +143,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     return userType ? userType.charAt(0).toUpperCase() : "";
   };
 
-  const handleMoreOptions = () => {
-    console.log("hello");
-    if (selectedChat?.chatType === "group") {
-      navigation.navigate("GroupInfo");
-    }
-  };
 
   const handleSwipeLeft = (item: any) => {
     setReplyingMessage(item);
@@ -287,7 +281,17 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     markAsRead(selectedChat._id, loggedUser._id);
   }, []);
 
-  const reportMessageReasons = ["Spam", "Harassment", "Hate Speech", "Other"];
+  const reportMessageReasons = [
+    "Spam",
+    "Harassment",
+    "Hate Speech",
+    "Repeated Messages",
+    "Unwanted Content",
+    "Abusive Content",
+    "Offensive Language",
+    "Scam/Fraud",
+    "Other",
+  ];
 
   const reportUserReasons = [
     "Abusive Behavior",
@@ -314,7 +318,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
 
   const handleSelectReportMessageReason = async (reason) => {
     await setReason(reason);
-  
+
     await ReportMessages(
       loggedUser._id,
       selectedMessages,
@@ -326,7 +330,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
     );
 
     setReportMessageModalVisible(false);
-    console.log(`Message reported for reason: ${reason}`);
   };
   const handleSelectReportUserReason = async (reason) => {
     await setReason(reason);
@@ -341,7 +344,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       setReportLoading
     );
     setReportUserModalVisible(false);
-    console.log(`User reported for reason: ${reason}`);
   };
 
   return (
