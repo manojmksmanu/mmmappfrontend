@@ -41,7 +41,7 @@ export const localLoginStyles = StyleSheet.create({
     flex: 1,
     ...Platform.select({
       ios: {
-        height: 40, // Ensure height is constrained on iOS
+        height: 100, // Ensure height is constrained on iOS
         justifyContent: "center", // Center items in the container
         paddingLeft: 10,
         overflow: "hidden",
