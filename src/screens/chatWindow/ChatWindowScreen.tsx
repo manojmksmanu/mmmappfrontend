@@ -291,22 +291,28 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   }, []);
 
   const reportMessageReasons = [
-    "Spam",
-    "Harassment",
+    "Profanity or Offensive Language",
+    "Inappropriate Content",
     "Hate Speech",
-    "Repeated Messages",
-    "Unwanted Content",
-    "Abusive Content",
-    "Offensive Language",
+    "Spam Message",
+    "Sexual/Adult Content",
+    " Harassment or Bullying",
+    "Impersonation Content",
+    "Irrelevant Content",
     "Scam/Fraud",
+    "Unverified Information",
     "Other",
   ];
 
   const reportUserReasons = [
-    "Abusive Behavior",
-    "Inappropriate Content",
-    "Violation of Rules",
-    "Other",
+    "Inappropriate Behavior",
+    "Offensive Language",
+    "Spam/Unwanted Messages",
+    "Harassment or Bullying",
+    "Unwanted Contact",
+    "Scams and Fraudulent Behavior",
+    "Suspicious Activity",
+    "Others",
   ];
 
   const handleCloseOptions = () => setOptionsModalVisible(false);
