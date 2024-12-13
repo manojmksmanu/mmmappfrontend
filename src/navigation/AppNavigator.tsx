@@ -67,7 +67,9 @@ const AppNavigator: React.FC = () => {
     );
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
+        console.log(notification)
         if (appState === "active") {
+          console.log('app is in foreground')
           return;
         } else {
         }

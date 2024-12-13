@@ -38,6 +38,7 @@ import OptionsModal from "src/components/chatWindowScreenComp/OptionsModal";
 import ReasonModal from "src/components/chatWindowScreenComp/ReasonModal";
 import { ReportMessages, ReportUser } from "src/services/api/reportService";
 import { BlockUser, UnBlockUser } from "src/services/api/blockUserService";
+import { Filter } from "bad-words";
 
 const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -121,6 +122,9 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
   const { setSelectedChat } = useAuth() as {
     setSelectedChat: any;
   };
+
+  const filter = new Filter();
+
   // const removeAllMessages = useChatStore((state) => state.removeAllMessages);
   // removeAllMessages();
   useConversation();
@@ -239,8 +243,6 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       updatedMessage
     );
   };
-  console.log(selectedChat.users);
-  console.log(selectedChat.blockedUsers, "blocker users");
   const sendMessageNew = async () => {
     if (!message) return;
     setReplyingMessage("");
@@ -390,6 +392,16 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
       } blocked you `;
     }
     return;
+  };
+  const filterContent = (inputText: string) => {
+    try {
+      // Clean the input text
+      const cleanedText = filter.clean(inputText);
+      setMessage(cleanedText);
+    } catch (error) {
+      console.error("Filtering content failed:", error);
+      setMessage(inputText); // Fallback to original text if an error occurs
+    }
   };
 
   return (
@@ -641,7 +653,7 @@ const ChatWindowScreen: React.FC<{ route: any; navigation: any }> = ({
               <TextInput
                 ref={textInputRef}
                 value={message}
-                onChangeText={setMessage}
+                onChangeText={filterContent}
                 placeholder="Type a message"
                 placeholderTextColor={colors.text}
                 style={[
