@@ -29,8 +29,6 @@ const AppNavigator: React.FC = () => {
   const responseListener = useRef<Notifications.Subscription>();
   const { loggedUser, token } = useAuthStore();
 
-  
-
   useConversation();
   Notifications.setNotificationHandler({
     handleNotification: async () => {
@@ -67,9 +65,8 @@ const AppNavigator: React.FC = () => {
     );
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
-        console.log(notification)
         if (appState === "active") {
-          console.log('app is in foreground')
+          console.log("app is in foreground");
           return;
         } else {
         }
