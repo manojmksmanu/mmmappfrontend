@@ -21,6 +21,7 @@ import { useAuthStore } from "src/services/storage/authStore";
 import { useConversation } from "src/services/sockets/useConversation";
 import MyProject from "src/screens/projectScreens/MyProject";
 import CreateProject from "src/screens/projectScreens/CreateProject";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const Stack = createNativeStackNavigator();
 
 const AppNavigator: React.FC = () => {
@@ -52,9 +53,14 @@ const AppNavigator: React.FC = () => {
     registerForPushNotificationsAsync()
       .then(async (expoToken: any) => {
         const user = loggedUser || null;
-
-        await updateExpoPushToken(user, expoToken, token);
-        console.log(expoToken);
+        const storedToken = await AsyncStorage.getItem("expoPushToken");
+        if (storedToken !== expoToken) {
+          await updateExpoPushToken(user, expoToken, token);
+          // console.log(expoToken, "updated token");
+        } else {
+          // console.log("Using stored Expo Push Token:", storedToken);
+          return storedToken;
+        }
       })
       .catch((error: any) => console.log(error, "token error"));
     const appStateListener = AppState.addEventListener(
