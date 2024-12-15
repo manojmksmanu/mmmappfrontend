@@ -3,6 +3,8 @@
 # dependencies
 node_modules/
 
+/mmmapp-7f726-firebase-adminsdk-p9f7u-d60247437f.json
+
 # Expo
 .expo/
 dist/
